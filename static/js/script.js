@@ -9,7 +9,8 @@ const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
 function loadTheme() {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark.matches)) {
+    // Default to light mode - only use dark if explicitly saved as 'dark'
+    if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
         themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
     } else {

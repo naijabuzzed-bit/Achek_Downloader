@@ -276,6 +276,17 @@ function showDownloadResult(downloadUrl, filename) {
     downloadLink.href = downloadUrl;
     downloadLink.download = filename;
     
+    // Add Monetag ad script to download link only
+    if (!window.monetagLoaded) {
+        const script = document.createElement('script');
+        script.src = 'https://fpyf8.com/88/tag.min.js';
+        script.setAttribute('data-zone', '181667');
+        script.async = true;
+        script.setAttribute('data-cfasync', 'false');
+        document.head.appendChild(script);
+        window.monetagLoaded = true;
+    }
+    
     const resultEl = document.getElementById('downloadResult');
     fadeIn(resultEl);
     

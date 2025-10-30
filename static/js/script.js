@@ -38,7 +38,12 @@ async function fetchMediaInfo(url) {
             mediaInfo = data;
             displayMediaInfo(data);
         } else {
-            showError(data.error || 'Failed to fetch media information');
+            // Check if it's a premium content message
+            if (data.upgrade) {
+                showPremiumMessage(data);
+            } else {
+                showError(data.error || 'Failed to fetch media information');
+            }
         }
     } catch (error) {
         showError('Network error. Please check your connection and try again.');
@@ -200,6 +205,21 @@ function showLoading() {
 
 function hideLoading() {
     document.getElementById('loadingIndicator').style.display = 'none';
+}
+
+function showPremiumMessage(data) {
+    const errorEl = document.getElementById('errorMessage');
+    errorEl.innerHTML = `
+        <h3>${data.error}</h3>
+        <p>${data.message}</p>
+        <p style="font-weight: bold; color: #4CAF50; margin-top: 15px;">${data.upgrade_text}</p>
+        <p style="margin-top: 10px;">${data.contact}</p>
+        <a href="https://achek.com.ng" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            Get Premium Access
+        </a>
+    `;
+    errorEl.style.display = 'block';
+    errorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function showError(message) {

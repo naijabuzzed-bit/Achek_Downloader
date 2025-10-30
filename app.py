@@ -82,8 +82,19 @@ def get_info():
 
     except Exception as e:
         error_message = str(e)
-        if 'DRM' in error_message or 'drm' in error_message.lower():
-            return jsonify({'error': '🔒 DRM Protection Detected: This content uses encryption that cannot be bypassed. DRM-protected platforms (Spotify Premium, Netflix, Disney+, Apple Music, etc.) are legally and technically protected. Try publicly accessible content from YouTube, Instagram, TikTok, SoundCloud, or similar platforms instead.'}), 400
+
+        # Check if it's a premium/DRM platform
+        drm_platforms = ['spotify.com', 'netflix.com', 'disney', 'hulu.com', 'apple.com/music', 'amazon.com/music', 'tidal.com', 'deezer.com']
+        is_drm_platform = any(platform in url.lower() for platform in drm_platforms)
+
+        if 'DRM' in error_message or 'drm' in error_message.lower() or is_drm_platform:
+            return jsonify({
+                'error': '💎 Premium Content Detected',
+                'message': 'This content is from a premium DRM-protected service (Spotify, Netflix, Disney+, etc.).',
+                'upgrade': True,
+                'upgrade_text': '🚀 Upgrade to Premium to download from these platforms! Contact us for premium access.',
+                'contact': 'Visit achek.com.ng or contact Caleb Onuche for premium subscription.'
+            }), 402
         elif 'private' in error_message.lower() or 'login' in error_message.lower():
             return jsonify({'error': '🔐 Private Content: This content requires login or is private. Try public content instead.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
@@ -91,7 +102,7 @@ def get_info():
         elif '404' in error_message or 'not found' in error_message.lower():
             return jsonify({'error': '❌ Content Not Found: The URL may be incorrect, the content may have been removed, or it may be private. Please check the URL and try again.'}), 404
         elif 'audiomack' in error_message.lower():
-            return jsonify({'error': '🎵 Audiomack Error: Unable to access this track. The track may have been removed, is private, or the URL format has changed. Try a different Audiomack track or use the direct track URL.'}), 400
+            return jsonify({'error': '🎵 Audiomack Error: Please make sure the URL follows this format: https://audiomack.com/username/song/song-title. The track may have been removed or is private. Try copying the URL directly from the Audiomack page.'}), 400
         return jsonify({'error': f'Error: {error_message}'}), 500
 
 @app.route('/download', methods=['POST'])
@@ -159,8 +170,19 @@ def download():
 
     except Exception as e:
         error_message = str(e)
-        if 'DRM' in error_message or 'drm' in error_message.lower():
-            return jsonify({'error': '🔒 DRM Protection Detected: This content uses encryption that cannot be bypassed. DRM-protected platforms (Spotify Premium, Netflix, Disney+, Apple Music, etc.) are legally and technically protected. Try publicly accessible content from YouTube, Instagram, TikTok, SoundCloud, or similar platforms instead.'}), 400
+
+        # Check if it's a premium/DRM platform
+        drm_platforms = ['spotify.com', 'netflix.com', 'disney', 'hulu.com', 'apple.com/music', 'amazon.com/music', 'tidal.com', 'deezer.com']
+        is_drm_platform = any(platform in url.lower() if 'currentUrl' in locals() else url.lower() for platform in drm_platforms)
+
+        if 'DRM' in error_message or 'drm' in error_message.lower() or is_drm_platform:
+            return jsonify({
+                'error': '💎 Premium Content Detected',
+                'message': 'This content is from a premium DRM-protected service (Spotify, Netflix, Disney+, etc.).',
+                'upgrade': True,
+                'upgrade_text': '🚀 Upgrade to Premium to download from these platforms! Contact us for premium access.',
+                'contact': 'Visit achek.com.ng or contact Caleb Onuche for premium subscription.'
+            }), 402
         elif 'private' in error_message.lower() or 'login' in error_message.lower():
             return jsonify({'error': '🔐 Private Content: This content requires login or is private. Try public content instead.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
@@ -168,7 +190,7 @@ def download():
         elif '404' in error_message or 'not found' in error_message.lower():
             return jsonify({'error': '❌ Content Not Found: The URL may be incorrect, the content may have been removed, or it may be private. Please check the URL and try again.'}), 404
         elif 'audiomack' in error_message.lower():
-            return jsonify({'error': '🎵 Audiomack Error: Unable to access this track. The track may have been removed, is private, or the URL format has changed. Try a different Audiomack track or use the direct track URL.'}), 400
+            return jsonify({'error': '🎵 Audiomack Error: Please make sure the URL follows this format: https://audiomack.com/username/song/song-title. The track may have been removed or is private. Try copying the URL directly from the Audiomack page.'}), 400
         return jsonify({'error': f'Error: {error_message}'}), 500
 
 @app.route('/download-file/<path:filename>')

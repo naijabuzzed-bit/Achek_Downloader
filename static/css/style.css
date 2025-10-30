@@ -13,6 +13,8 @@ body {
     min-height: 100vh;
     padding: 10px;
     line-height: 1.6;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 @keyframes gradientShift {

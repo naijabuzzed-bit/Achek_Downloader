@@ -1,14 +1,15 @@
+
 from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
-from werkzeug.utils import secure_filename
 import yt_dlp
 import os
-import time
-from pathlib import Path
+import re
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 
-app.config['DOWNLOAD_FOLDER'] = 'static/downloads'
-Path(app.config['DOWNLOAD_FOLDER']).mkdir(parents=True, exist_ok=True)
+# Configuration
+DOWNLOAD_FOLDER = os.path.join('static', 'downloads')
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -16,255 +17,176 @@ def index():
 
 @app.route('/sw.js')
 def service_worker():
+    """Serve service worker with correct MIME type"""
     return send_from_directory('.', 'sw.js', mimetype='application/javascript')
 
-@app.route('/get-info', methods=['POST'])
-def get_info():
+@app.route('/fetch_info', methods=['POST'])
+def fetch_info():
     try:
-        data = request.get_json()
+        data = request.json
         url = data.get('url')
-
+        
         if not url:
             return jsonify({'error': 'URL is required'}), 400
 
+        # Enhanced yt-dlp options for maximum compatibility
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
             'extract_flat': False,
+            'force_generic_extractor': False,
             'nocheckcertificate': True,
-            'ignoreerrors': False,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'geo_bypass': True,
+            'socket_timeout': 30,
+            'retries': 3,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-us,en;q=0.5',
                 'Accept-Encoding': 'gzip, deflate',
-                'Sec-Fetch-Mode': 'navigate',
+                'Connection': 'keep-alive',
             },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'ios', 'web'],
-                    'player_skip': ['webpage', 'configs'],
+                    'skip': ['dash', 'hls'],
+                    'player_client': ['android', 'web'],
                 },
                 'instagram': {
-                    'api_version': 'v1',
+                    'api': ['graphql'],
                 },
                 'tiktok': {
-                    'api_hostname': 'api22-normal-c-useast2a.tiktokv.com',
+                    'api': ['mobile_api'],
                 }
-            },
-            'age_limit': None,
-            'geo_bypass': True,
-            'geo_bypass_country': 'US',
-            'socket_timeout': 30,
-            'retries': 3,
-            'fragment_retries': 3,
+            }
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
+            try:
+                info = ydl.extract_info(url, download=False)
+            except yt_dlp.utils.DownloadError as e:
+                error_msg = str(e).lower()
+                
+                # DRM-protected platforms
+                if any(platform in url.lower() for platform in ['spotify', 'netflix', 'disneyplus', 'disney+', 'hulu', 'amazon', 'prime', 'apple.com/music']):
+                    return jsonify({
+                        'error': 'This platform uses DRM (Digital Rights Management) encryption which makes downloading technically impossible. Please use supported platforms like YouTube, Instagram, TikTok, Facebook, Twitter, Vimeo, or SoundCloud.'
+                    }), 400
+                
+                # Audiomack specific
+                if 'audiomack' in url.lower():
+                    return jsonify({
+                        'error': 'Audiomack downloads are currently limited due to platform restrictions. Try YouTube, SoundCloud, or other supported platforms for music downloads.'
+                    }), 400
+                
+                # Geo-restriction
+                if 'geo' in error_msg or 'not available' in error_msg or 'region' in error_msg:
+                    return jsonify({
+                        'error': 'This content is geo-restricted and not available in your region. Try using a VPN or choose content available in your location.'
+                    }), 400
+                
+                # Private/Login required
+                if 'login' in error_msg or 'private' in error_msg or 'sign in' in error_msg:
+                    return jsonify({
+                        'error': 'This content is private or requires login. We can only download public content.'
+                    }), 400
+                
+                # Generic error
+                return jsonify({
+                    'error': f'Unable to fetch media info. This could be due to: private content, geo-restrictions, platform limitations, or an invalid URL. Error: {str(e)}'
+                }), 400
+
+        # Extract media information
+        formats = info.get('formats', [])
+        
+        video_formats = []
+        audio_formats = []
+        
+        for f in formats:
+            if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
+                quality = f.get('format_note', f.get('height', 'Unknown'))
+                ext = f.get('ext', 'mp4')
+                filesize = f.get('filesize') or f.get('filesize_approx', 0)
+                
+                video_formats.append({
+                    'format_id': f['format_id'],
+                    'quality': f"{quality}p" if isinstance(quality, int) else quality,
+                    'ext': ext,
+                    'filesize': round(filesize / (1024*1024), 2) if filesize else 'Unknown'
+                })
             
-            if not info:
-                return jsonify({'error': 'Unable to fetch media information'}), 400
+            elif f.get('acodec') != 'none' and f.get('vcodec') == 'none':
+                abr = f.get('abr', f.get('tbr', 'Unknown'))
+                ext = f.get('ext', 'mp3')
+                filesize = f.get('filesize') or f.get('filesize_approx', 0)
+                
+                audio_formats.append({
+                    'format_id': f['format_id'],
+                    'quality': f"{int(abr)}kbps" if isinstance(abr, (int, float)) else str(abr),
+                    'ext': ext,
+                    'filesize': round(filesize / (1024*1024), 2) if filesize else 'Unknown'
+                })
 
-            formats = []
-            if info and 'formats' in info and info['formats']:
-                seen = set()
-                for f in info['formats']:
-                    if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
-                        quality = f.get('format_note', f.get('height', 'unknown'))
-                        ext = f.get('ext', 'mp4')
-                        format_id = f.get('format_id')
+        video_formats = sorted(video_formats, key=lambda x: int(re.search(r'\d+', x['quality']).group()) if re.search(r'\d+', x['quality']) else 0, reverse=True)
+        audio_formats = sorted(audio_formats, key=lambda x: int(re.search(r'\d+', x['quality']).group()) if re.search(r'\d+', x['quality']) else 0, reverse=True)
 
-                        if quality not in seen:
-                            formats.append({
-                                'format_id': format_id,
-                                'quality': quality,
-                                'ext': ext,
-                                'filesize': f.get('filesize', 0)
-                            })
-                            seen.add(quality)
-
-            audio_formats = []
-            if info and 'formats' in info and info['formats']:
-                seen_audio = set()
-                for f in info['formats']:
-                    if f.get('acodec') != 'none' and f.get('vcodec') == 'none':
-                        quality = f.get('abr', 'unknown')
-                        ext = f.get('ext', 'mp3')
-                        format_id = f.get('format_id')
-
-                        format_label = f"{quality}kbps" if quality != 'unknown' else ext
-                        if format_label not in seen_audio:
-                            audio_formats.append({
-                                'format_id': format_id,
-                                'quality': format_label,
-                                'ext': ext,
-                                'filesize': f.get('filesize', 0)
-                            })
-                            seen_audio.add(format_label)
-
-            return jsonify({
-                'title': info.get('title', 'Unknown') if info else 'Unknown',
-                'thumbnail': info.get('thumbnail', '') if info else '',
-                'duration': info.get('duration', 0) if info else 0,
-                'uploader': info.get('uploader', 'Unknown') if info else 'Unknown',
-                'formats': formats[:10],
-                'audio_formats': audio_formats[:5]
-            })
+        return jsonify({
+            'title': info.get('title', 'Unknown Title'),
+            'thumbnail': info.get('thumbnail', ''),
+            'uploader': info.get('uploader', 'Unknown'),
+            'duration': info.get('duration_string', 'Unknown'),
+            'video_formats': video_formats[:10],
+            'audio_formats': audio_formats[:5]
+        })
 
     except Exception as e:
-        error_message = str(e).lower()
-        
-        if 'spotify' in error_message:
-            return jsonify({'error': '🚫 Spotify uses DRM protection and requires authentication. Spotify downloads are not supported due to copyright protection. Try YouTube Music, SoundCloud, or other platforms instead.'}), 400
-        elif 'netflix' in error_message or 'prime video' in error_message or 'disney' in error_message or 'hulu' in error_message:
-            return jsonify({'error': '🚫 Netflix, Disney+, Prime Video and similar streaming services use heavy DRM encryption. These platforms cannot be downloaded due to copyright protection.'}), 400
-        elif 'audiomack' in error_message:
-            return jsonify({'error': '🎵 Audiomack Error: Please check the URL format. Try the direct song URL like: https://audiomack.com/artist/song-title'}), 400
-        elif 'private' in error_message or 'login' in error_message:
-            return jsonify({'error': '🔐 This content is private or requires login. Try a public video instead.'}), 400
-        elif 'geo' in error_message or 'location' in error_message or 'not available' in error_message:
-            return jsonify({'error': '🌍 This content may be restricted in your region or not available.'}), 400
-        elif '404' in error_message or 'not found' in error_message:
-            return jsonify({'error': '❌ Content not found. Please verify the URL is correct and the content still exists.'}), 404
-        elif 'copyright' in error_message or 'removed' in error_message:
-            return jsonify({'error': '⚠️ This content has been removed due to copyright claims.'}), 400
-        
-        return jsonify({'error': f'Unable to process this URL. Supported platforms: YouTube, Instagram, TikTok, Facebook, Twitter, Vimeo, Dailymotion, SoundCloud, and 1000+ others. Note: DRM-protected platforms (Spotify, Netflix, etc.) are not supported.'}), 500
+        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 @app.route('/download', methods=['POST'])
 def download():
     try:
-        data = request.get_json()
+        data = request.json
         url = data.get('url')
         format_id = data.get('format_id')
-        download_type = data.get('type', 'video')
+        
+        if not url or not format_id:
+            return jsonify({'error': 'URL and format_id are required'}), 400
 
-        if not url:
-            return jsonify({'error': 'URL is required'}), 400
-
-        timestamp = int(time.time())
-        output_template = os.path.join(app.config['DOWNLOAD_FOLDER'], f'{timestamp}_%(title)s.%(ext)s')
+        filename = f"download_{format_id}.%(ext)s"
+        filepath = os.path.join(DOWNLOAD_FOLDER, filename)
 
         ydl_opts = {
-            'outtmpl': output_template,
+            'format': format_id,
+            'outtmpl': filepath,
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            'ignoreerrors': False,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-us,en;q=0.5',
-                'Accept-Encoding': 'gzip, deflate',
-                'Sec-Fetch-Mode': 'navigate',
-            },
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'ios', 'web'],
-                    'player_skip': ['webpage', 'configs'],
-                },
-                'instagram': {
-                    'api_version': 'v1',
-                },
-                'tiktok': {
-                    'api_hostname': 'api22-normal-c-useast2a.tiktokv.com',
-                }
-            },
-            'age_limit': None,
             'geo_bypass': True,
-            'geo_bypass_country': 'US',
             'socket_timeout': 30,
             'retries': 3,
-            'fragment_retries': 3,
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            }
         }
 
-        if download_type == 'audio':
-            ydl_opts['format'] = 'bestaudio/best'
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '320',
-            }]
-            ydl_opts['writethumbnail'] = False
-        else:
-            if format_id:
-                ydl_opts['format'] = format_id
-            else:
-                ydl_opts['format'] = 'best'
-            ydl_opts['merge_output_format'] = 'mp4'
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
+            ydl.download([url])
 
-            if download_type == 'audio':
-                filename = filename.rsplit('.', 1)[0] + '.mp3'
+        downloaded_file = None
+        for file in os.listdir(DOWNLOAD_FOLDER):
+            if file.startswith(f"download_{format_id}"):
+                downloaded_file = file
+                break
 
-            if os.path.exists(filename):
-                original_basename = os.path.basename(filename)
-                safe_basename = secure_filename(original_basename)
-
-                if safe_basename != original_basename:
-                    safe_path = os.path.join(app.config['DOWNLOAD_FOLDER'], safe_basename)
-                    os.rename(filename, safe_path)
-                    final_filename = safe_basename
-                else:
-                    final_filename = original_basename
-
-                return jsonify({
-                    'success': True,
-                    'filename': final_filename,
-                    'download_url': f'/download-file/{final_filename}'
-                })
-            else:
-                return jsonify({'error': 'Download failed'}), 500
+        if downloaded_file:
+            return jsonify({
+                'success': True,
+                'download_url': f'/static/downloads/{downloaded_file}'
+            })
+        else:
+            return jsonify({'error': 'Download failed'}), 500
 
     except Exception as e:
-        error_message = str(e).lower()
-        
-        if 'spotify' in error_message:
-            return jsonify({'error': '🚫 Spotify downloads are not supported due to DRM copyright protection.'}), 400
-        elif 'netflix' in error_message or 'prime video' in error_message or 'disney' in error_message or 'hulu' in error_message:
-            return jsonify({'error': '🚫 Streaming services with DRM encryption (Netflix, Disney+, etc.) cannot be downloaded.'}), 400
-        elif 'audiomack' in error_message:
-            return jsonify({'error': '🎵 Audiomack Error: Please use the correct URL format for the song.'}), 400
-        elif 'private' in error_message or 'login' in error_message:
-            return jsonify({'error': '🔐 This content is private or requires login.'}), 400
-        elif 'geo' in error_message or 'location' in error_message:
-            return jsonify({'error': '🌍 Content restricted in your region.'}), 400
-        elif '404' in error_message or 'not found' in error_message:
-            return jsonify({'error': '❌ Content not found or has been removed.'}), 404
-        elif 'copyright' in error_message or 'removed' in error_message:
-            return jsonify({'error': '⚠️ Content removed due to copyright claims.'}), 400
-        
-        return jsonify({'error': f'Download failed. Supported platforms: YouTube, Instagram, TikTok, Facebook, Twitter, Vimeo, SoundCloud, and others. DRM-protected services not supported.'}), 500
-
-@app.route('/download-file/<path:filename>')
-def download_file(filename):
-    try:
-        safe_filename = secure_filename(filename)
-        if not safe_filename:
-            return "Invalid filename", 400
-
-        file_path = os.path.join(app.config['DOWNLOAD_FOLDER'], safe_filename)
-        if not os.path.exists(file_path):
-            return "File not found", 404
-
-        if not os.path.abspath(file_path).startswith(os.path.abspath(app.config['DOWNLOAD_FOLDER'])):
-            return "Invalid file path", 400
-
-        return send_from_directory(
-            app.config['DOWNLOAD_FOLDER'],
-            safe_filename,
-            as_attachment=True
-        )
-    except FileNotFoundError:
-        return "File not found", 404
-    except Exception as e:
-        return str(e), 500
+        return jsonify({'error': f'Download failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -535,10 +535,7 @@ function hideDownloadResult() {
     if (resultEl) fadeOut(resultEl);
 }
 
-// Ad function removed - no redirects anywhere on the page
-function triggerAdOnDownload() {
-    // Ads disabled to prevent unwanted redirects
-    console.log('Ads disabled for better user experience');
-}
+// All ad functionality completely removed
+// No redirects will occur anywhere on the site
 
 console.log('Media Downloader by Achek Digital Solutions - Ready!');

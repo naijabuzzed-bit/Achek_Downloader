@@ -577,12 +577,8 @@ body {
 }
 
 .ad-container {
-    min-height: 100px;
-    max-width: 100%;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    justify-content: center;
+    display: none !important;
+    visibility: hidden;
 }
 
 .download-progress {

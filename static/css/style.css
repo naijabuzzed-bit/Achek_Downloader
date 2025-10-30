@@ -234,7 +234,7 @@ body {
 /* Hero Section */
 .hero-section {
     background: var(--card-bg);
-    padding: 60px 24px;
+    padding: 30px 24px 20px;
     text-align: center;
     transition: background 0.3s ease;
 }
@@ -245,17 +245,17 @@ body {
 }
 
 .hero-title {
-    font-size: clamp(28px, 5vw, 42px);
+    font-size: clamp(24px, 5vw, 38px);
     font-weight: 800;
     color: var(--text-primary);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     line-height: 1.2;
 }
 
 .hero-description {
-    font-size: clamp(16px, 3vw, 20px);
+    font-size: clamp(14px, 3vw, 18px);
     color: var(--text-secondary);
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .hero-features {
@@ -284,7 +284,7 @@ body {
 /* Main Section */
 .main-section {
     background: var(--light-gray);
-    padding: 40px 24px;
+    padding: 20px 24px 40px;
     min-height: 500px;
 }
 
@@ -297,7 +297,7 @@ body {
 .download-card {
     background: var(--card-bg);
     border-radius: var(--border-radius);
-    padding: 40px;
+    padding: 30px;
     box-shadow: var(--shadow-xl);
     margin-bottom: 30px;
     transition: background 0.3s ease;
@@ -305,7 +305,7 @@ body {
 
 .card-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .card-header h2 {
@@ -1148,11 +1148,11 @@ body {
     }
 
     .hero-section {
-        padding: 40px 20px;
+        padding: 20px 16px 15px;
     }
 
     .download-card {
-        padding: 24px 20px;
+        padding: 20px 16px;
     }
 
     .input-wrapper {

@@ -295,8 +295,20 @@
                         </div>
 
                         <div id="downloadProgress" class="download-progress" style="display: none;">
-                            <div class="spinner"></div>
-                            <p>Downloading... Please wait</p>
+                            <div class="progress-container">
+                                <div class="progress-header">
+                                    <h3>⬇️ Downloading...</h3>
+                                    <span id="progressPercentage" class="progress-percentage">0%</span>
+                                </div>
+                                <div class="progress-bar-wrapper">
+                                    <div id="progressBar" class="progress-bar"></div>
+                                </div>
+                                <div class="progress-stats">
+                                    <span id="progressSpeed" class="progress-speed">Speed: calculating...</span>
+                                    <span id="progressEta" class="progress-eta">Time remaining: calculating...</span>
+                                </div>
+                                <p id="progressMessage" class="progress-message">Initializing download...</p>
+                            </div>
                         </div>
 
                         <div id="downloadResult" class="download-result" style="display: none;">

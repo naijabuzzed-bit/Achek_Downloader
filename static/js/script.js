@@ -287,8 +287,12 @@ async function downloadWithFormat(formatId, type) {
     hideError();
     hideDownloadResult();
     
+    let progressInterval = null;
+    let downloadId = null;
+    
     try {
-        const response = await fetch('/download', {
+        // Step 1: Start the download and get the download_id
+        const startResponse = await fetch('/start_download', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -300,18 +304,123 @@ async function downloadWithFormat(formatId, type) {
             })
         });
         
-        const data = await response.json();
+        const startData = await startResponse.json();
         
-        if (response.ok && data.success) {
-            showDownloadResult(data.download_url);
+        if (!startResponse.ok || !startData.success) {
+            showError(startData.error || 'Failed to start download');
+            hideDownloadProgress();
+            return;
+        }
+        
+        downloadId = startData.download_id;
+        
+        // Step 2: Start polling for progress updates with the real download_id
+        progressInterval = setInterval(async () => {
+            try {
+                const progressResponse = await fetch(`/progress/${downloadId}`);
+                const progressData = await progressResponse.json();
+                
+                if (progressData.status === 'downloading' || progressData.status === 'processing' || progressData.status === 'starting') {
+                    updateProgressDisplay(
+                        progressData.percentage || 0,
+                        progressData.message || 'Downloading...',
+                        progressData.speed || 0,
+                        progressData.eta || 0
+                    );
+                } else if (progressData.status === 'complete') {
+                    clearInterval(progressInterval);
+                    updateProgressDisplay(100, 'Download complete!', 0, 0);
+                } else if (progressData.status === 'error') {
+                    clearInterval(progressInterval);
+                    showError(progressData.message || 'Download failed');
+                    hideDownloadProgress();
+                }
+            } catch (err) {
+                console.log('Progress check:', err);
+            }
+        }, 500); // Poll every 500ms
+        
+        // Step 3: Actually perform the download
+        const downloadResponse = await fetch('/download', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: currentUrl,
+                format_id: formatId,
+                type: type,
+                download_id: downloadId
+            })
+        });
+        
+        const downloadData = await downloadResponse.json();
+        
+        // Clear the polling interval
+        if (progressInterval) {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadResponse.ok && downloadData.success) {
+            updateProgressDisplay(100, 'Download complete!', 0, 0);
+            setTimeout(() => {
+                showDownloadResult(downloadData.download_url);
+                hideDownloadProgress();
+            }, 800);
         } else {
-            showError(data.error || 'Download failed. Please try again or select a different format.');
+            showError(downloadData.error || 'Download failed. Please try again or select a different format.');
+            hideDownloadProgress();
         }
     } catch (error) {
         console.error('Download error:', error);
         showError('Download failed. Please check your connection and try again.');
-    } finally {
         hideDownloadProgress();
+        if (progressInterval) {
+            clearInterval(progressInterval);
+        }
+    }
+}
+
+// Helper function to format bytes
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Helper function to format time
+function formatTime(seconds) {
+    if (!seconds || seconds <= 0) return 'calculating...';
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
+    return `${minutes}m ${secs}s`;
+}
+
+// Update progress display
+function updateProgressDisplay(percentage, message, speed, eta) {
+    const progressBar = document.getElementById('progressBar');
+    const progressPercentage = document.getElementById('progressPercentage');
+    const progressSpeed = document.getElementById('progressSpeed');
+    const progressEta = document.getElementById('progressEta');
+    const progressMessage = document.getElementById('progressMessage');
+    
+    if (progressBar) {
+        progressBar.style.width = percentage + '%';
+    }
+    if (progressPercentage) {
+        progressPercentage.textContent = percentage + '%';
+    }
+    if (progressSpeed && speed > 0) {
+        progressSpeed.textContent = `Speed: ${formatBytes(speed)}/s`;
+    }
+    if (progressEta && eta > 0) {
+        progressEta.textContent = `Time remaining: ${formatTime(eta)}`;
+    }
+    if (progressMessage && message) {
+        progressMessage.textContent = message;
     }
 }
 

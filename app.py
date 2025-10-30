@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, send_file, send_from
 import yt_dlp
 import os
 import time
+import uuid
 from threading import Thread
 
 app = Flask(__name__)
@@ -9,6 +10,9 @@ app = Flask(__name__)
 # Configuration
 DOWNLOAD_FOLDER = 'static/downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
+# Global dictionary to store download progress
+download_progress = {}
 
 # File cleanup function
 def cleanup_old_files():
@@ -260,8 +264,53 @@ def fetch_info():
         return jsonify({'error': error_message}), 400
 
 
-@app.route('/download', methods=['POST'])
-def download():
+def progress_hook(d, download_id):
+    """Hook function to track download progress"""
+    if d['status'] == 'downloading':
+        # Calculate progress percentage
+        if 'total_bytes' in d or 'total_bytes_estimate' in d:
+            total = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
+            downloaded = d.get('downloaded_bytes', 0)
+            
+            if total > 0:
+                percentage = int((downloaded / total) * 100)
+            else:
+                percentage = 0
+            
+            # Calculate speed and ETA
+            speed = d.get('speed', 0)
+            eta = d.get('eta', 0)
+            
+            download_progress[download_id] = {
+                'status': 'downloading',
+                'percentage': percentage,
+                'downloaded': downloaded,
+                'total': total,
+                'speed': speed if speed else 0,
+                'eta': eta if eta else 0
+            }
+        else:
+            download_progress[download_id] = {
+                'status': 'downloading',
+                'percentage': 0,
+                'message': 'Starting download...'
+            }
+    elif d['status'] == 'finished':
+        download_progress[download_id] = {
+            'status': 'processing',
+            'percentage': 100,
+            'message': 'Processing file...'
+        }
+
+@app.route('/progress/<download_id>')
+def get_progress(download_id):
+    """Endpoint to check download progress"""
+    progress = download_progress.get(download_id, {'status': 'not_found', 'percentage': 0})
+    return jsonify(progress)
+
+@app.route('/start_download', methods=['POST'])
+def start_download():
+    """Initialize download and return download_id for progress tracking"""
     try:
         data = request.get_json()
         url = data.get('url')
@@ -271,17 +320,59 @@ def download():
         if not url:
             return jsonify({'error': 'URL is required'}), 400
 
+        # Generate unique download ID
+        download_id = str(uuid.uuid4())
         timestamp = int(time.time())
+        
+        # Initialize progress
+        download_progress[download_id] = {
+            'status': 'starting',
+            'percentage': 0,
+            'message': 'Initializing download...',
+            'timestamp': timestamp,
+            'type': download_type
+        }
+        
+        # Return download_id immediately so client can start polling
+        return jsonify({
+            'success': True,
+            'download_id': download_id
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to start download: {str(e)}'}), 500
+
+@app.route('/download', methods=['POST'])
+def download():
+    try:
+        data = request.get_json()
+        url = data.get('url')
+        format_id = data.get('format_id')
+        download_type = data.get('type', 'video')
+        download_id = data.get('download_id')
+
+        if not url:
+            return jsonify({'error': 'URL is required'}), 400
+        
+        if not download_id:
+            return jsonify({'error': 'Download ID is required'}), 400
+
+        timestamp = int(time.time())
+        
+        # Update progress status
+        if download_id in download_progress:
+            download_progress[download_id]['status'] = 'downloading'
+            download_progress[download_id]['message'] = 'Starting download...'
 
         if download_type == 'audio':
             output_template = os.path.join(DOWNLOAD_FOLDER, f'audio_{timestamp}.%(ext)s')
-            # Dynamic format selection for audio
             audio_format = format_id if format_id else 'bestaudio/best'
             ydl_opts = {
                 'format': audio_format,
                 'outtmpl': output_template,
                 'quiet': True,
                 'no_warnings': True,
+                'progress_hooks': [lambda d: progress_hook(d, download_id)],
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
@@ -299,7 +390,6 @@ def download():
             }
         else:
             output_template = os.path.join(DOWNLOAD_FOLDER, f'video_{timestamp}.%(ext)s')
-            # Dynamic format selection for video
             video_format = format_id if format_id else 'bestvideo+bestaudio/best'
             ydl_opts = {
                 'format': video_format,
@@ -307,6 +397,7 @@ def download():
                 'quiet': True,
                 'no_warnings': True,
                 'merge_output_format': 'mp4',
+                'progress_hooks': [lambda d: progress_hook(d, download_id)],
                 'socket_timeout': 45,
                 'retries': 10,
                 'geo_bypass': True,
@@ -324,10 +415,31 @@ def download():
         downloaded_files = [f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(f'{download_type}_{timestamp}')]
 
         if not downloaded_files:
+            if download_id in download_progress:
+                download_progress[download_id] = {'status': 'error', 'percentage': 0, 'message': 'No file was created'}
+                # Schedule cleanup for this error case too
+                def cleanup_no_file():
+                    time.sleep(10)
+                    download_progress.pop(download_id, None)
+                Thread(target=cleanup_no_file, daemon=True).start()
             return jsonify({'error': 'Download failed - no file was created'}), 500
 
         download_filename = downloaded_files[0]
         download_url = f'/static/downloads/{download_filename}'
+        
+        # Mark as complete and schedule cleanup
+        if download_id in download_progress:
+            download_progress[download_id] = {
+                'status': 'complete',
+                'percentage': 100,
+                'message': 'Download complete!'
+            }
+        
+        # Schedule cleanup after 10 seconds
+        def cleanup():
+            time.sleep(10)
+            download_progress.pop(download_id, None)
+        Thread(target=cleanup, daemon=True).start()
 
         return jsonify({
             'success': True,
@@ -335,6 +447,13 @@ def download():
         })
 
     except Exception as e:
+        if 'download_id' in locals() and download_id in download_progress:
+            download_progress[download_id] = {'status': 'error', 'percentage': 0, 'message': str(e)}
+            # Schedule cleanup for errored downloads too
+            def cleanup_error():
+                time.sleep(10)
+                download_progress.pop(download_id, None)
+            Thread(target=cleanup_error, daemon=True).start()
         return jsonify({'error': f'Download failed: {str(e)}'}), 500
 
 if __name__ == '__main__':

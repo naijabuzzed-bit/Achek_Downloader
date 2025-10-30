@@ -4,6 +4,28 @@
 A modern, professional Python Flask-based web application that allows users to download videos and music from 1000+ platforms including YouTube, Audiomack, Instagram, TikTok, Facebook, and more. The site features a clean, user-friendly interface and prominently showcases Achek Digital Solutions' web development services.
 
 ## Recent Changes
+- **2025-10-30**: Advanced Progress Tracking & Performance Enhancements
+  - Implemented real-time download progress tracking:
+    - Two-step download process with UUID-based download IDs
+    - Backend progress hooks capture download stats (percentage, speed, ETA)
+    - Frontend polls progress endpoint every 500ms for live updates
+    - Beautiful gradient progress bar with animations
+    - Displays download speed in MB/s and estimated time remaining
+    - Automatic cleanup of completed downloads after 10 seconds
+  - Enhanced visual feedback:
+    - New progress bar design with percentage display
+    - Real-time speed and ETA calculations
+    - Smooth progress animations and transitions
+    - Works seamlessly with light/dark mode
+  - Memory management improvements:
+    - All download states (success, error) include cleanup
+    - Prevents unbounded memory growth
+    - Concurrent downloads work independently with UUIDs
+  - **Audiomack Support Verified**:
+    - Specific error handling for Audiomack with helpful messages
+    - Full yt-dlp configuration supports Audiomack downloads
+    - Works with public Audiomack song links
+
 - **2025-10-30**: Enhanced Error Handling, Dark Mode & Layout Stability
   - Improved error messages with platform-specific, user-friendly feedback
   - Added emojis and clear explanations for each platform (Instagram, YouTube, TikTok, Facebook, Twitter, Audiomack, etc.)
@@ -100,12 +122,15 @@ A modern, professional Python Flask-based web application that allows users to d
 ### Key Features
 - Multi-platform video/audio downloader
 - Format and quality selection
-- Download progress tracking
+- **Real-time download progress tracking with percentage, speed & ETA**
 - Ad placement zones for monetization
 - Clean, user-friendly interface
 - Light/Dark mode toggle with persistence
 - Platform-specific error messages with helpful guidance
 - Stable layout preventing scrollbar/header/footer issues
+- Beautiful progress bar with gradient animations
+- Memory-efficient download management with automatic cleanup
+- Audiomack music downloads fully supported
 
 ### Structure
 ```

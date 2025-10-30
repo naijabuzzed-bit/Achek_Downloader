@@ -14,6 +14,10 @@ Path(app.config['DOWNLOAD_FOLDER']).mkdir(parents=True, exist_ok=True)
 def index():
     return render_template('index.html')
 
+@app.route('/sw.js')
+def service_worker():
+    return send_from_directory('.', 'sw.js', mimetype='application/javascript')
+
 @app.route('/get-info', methods=['POST'])
 def get_info():
     try:

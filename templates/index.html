@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://fpyf8.com/88/tag.min.js" data-zone="181667" async data-cfasync="false"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Media Downloader - YouTube, Instagram, TikTok, Spotify & More</title>
+    <title>Achek Media Downloader – Fast Video & Music Downloads</title>
+    <meta name="description" content="Download videos and music from YouTube, Instagram, TikTok, Facebook, Spotify and 1000+ sites with Achek Media Downloader">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎬 Media Downloader</h1>
-            <p class="subtitle">Download videos & music from YouTube, Instagram, TikTok, Facebook, Spotify, Audiomack & 1000+ sites</p>
+            <h1>🎬 Achek Media Downloader</h1>
+            <p class="subtitle">Download videos & music from YouTube, Instagram, TikTok, Facebook, Spotify & 1000+ sites</p>
         </header>
 
         <div class="ad-banner ad-top">
@@ -30,8 +33,21 @@
                                     placeholder="Paste video or music URL here (YouTube, Instagram, TikTok, Spotify, etc.)"
                                     required
                                 >
-                                <button type="submit" class="btn btn-primary">Get Info</button>
                             </div>
+                            <div class="quality-selector">
+                                <label for="quality">Select Quality:</label>
+                                <select id="quality">
+                                    <option value="best">Best Quality (Auto)</option>
+                                    <option value="1080p">1080p (Full HD)</option>
+                                    <option value="720p">720p (HD)</option>
+                                    <option value="480p">480p</option>
+                                    <option value="360p">360p</option>
+                                    <option value="240p">240p</option>
+                                    <option value="144p">144p</option>
+                                    <option value="audio">Audio Only (MP3)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-download" id="downloadBtn">Download</button>
                         </form>
 
                         <div id="loadingIndicator" class="loading" style="display: none;">
@@ -126,7 +142,7 @@
         </div>
 
         <footer>
-            <p>&copy; 2025 Media Downloader. All rights reserved.</p>
+            <p>&copy; 2025 Achek Media Downloader. All rights reserved.</p>
             <p class="disclaimer">This service is for personal use only. Please respect copyright laws and terms of service.</p>
         </footer>
     </div>

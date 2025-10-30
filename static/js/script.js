@@ -1,10 +1,13 @@
 let currentUrl = '';
+let mediaInfo = null;
+let clickedOnce = false;
 
 document.getElementById('downloadForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const urlInput = document.getElementById('urlInput');
     const url = urlInput.value.trim();
+    const quality = document.getElementById('quality').value;
     
     if (!url) {
         showError('Please enter a valid URL');
@@ -13,6 +16,15 @@ document.getElementById('downloadForm').addEventListener('submit', async (e) => 
     
     currentUrl = url;
     
+    if (!clickedOnce) {
+        await fetchMediaInfo(url);
+        clickedOnce = true;
+    } else {
+        await startDownload(url, quality);
+    }
+});
+
+async function fetchMediaInfo(url) {
     showLoading();
     hideError();
     hideMediaInfo();
@@ -30,16 +42,73 @@ document.getElementById('downloadForm').addEventListener('submit', async (e) => 
         const data = await response.json();
         
         if (response.ok) {
+            mediaInfo = data;
             displayMediaInfo(data);
+            document.getElementById('downloadBtn').textContent = 'Download Now';
         } else {
             showError(data.error || 'Failed to fetch media information');
+            clickedOnce = false;
         }
     } catch (error) {
         showError('Network error. Please check your connection and try again.');
+        clickedOnce = false;
     } finally {
         hideLoading();
     }
-});
+}
+
+async function startDownload(url, quality) {
+    showDownloadProgress();
+    hideError();
+    hideDownloadResult();
+    
+    let formatId = null;
+    let downloadType = 'video';
+    
+    if (quality === 'audio') {
+        downloadType = 'audio';
+    } else if (quality !== 'best' && mediaInfo && mediaInfo.formats) {
+        const selectedFormat = mediaInfo.formats.find(f => {
+            const height = f.quality;
+            return height && height.toString().includes(quality.replace('p', ''));
+        });
+        if (selectedFormat) {
+            formatId = selectedFormat.format_id;
+        }
+    }
+    
+    try {
+        const response = await fetch('/download', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: url,
+                format_id: formatId,
+                type: downloadType
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            showDownloadResult(data.download_url, data.filename);
+            clickedOnce = false;
+            document.getElementById('downloadBtn').textContent = 'Download';
+        } else {
+            showError(data.error || 'Download failed');
+            clickedOnce = false;
+            document.getElementById('downloadBtn').textContent = 'Download';
+        }
+    } catch (error) {
+        showError('Download failed. Please try again.');
+        clickedOnce = false;
+        document.getElementById('downloadBtn').textContent = 'Download';
+    } finally {
+        hideDownloadProgress();
+    }
+}
 
 function displayMediaInfo(info) {
     document.getElementById('thumbnail').src = info.thumbnail;
@@ -57,7 +126,7 @@ function displayMediaInfo(info) {
             btn.textContent = `${format.quality} (${format.ext})`;
             btn.dataset.formatId = format.format_id;
             btn.dataset.type = 'video';
-            btn.addEventListener('click', () => downloadMedia(format.format_id, 'video'));
+            btn.addEventListener('click', () => downloadWithFormat(format.format_id, 'video'));
             videoFormats.appendChild(btn);
         });
     } else {
@@ -65,7 +134,7 @@ function displayMediaInfo(info) {
         btn.className = 'format-btn';
         btn.textContent = 'Download Best Quality';
         btn.dataset.type = 'video';
-        btn.addEventListener('click', () => downloadMedia(null, 'video'));
+        btn.addEventListener('click', () => downloadWithFormat(null, 'video'));
         videoFormats.appendChild(btn);
     }
     
@@ -79,7 +148,7 @@ function displayMediaInfo(info) {
             btn.textContent = `${format.quality} (${format.ext})`;
             btn.dataset.formatId = format.format_id;
             btn.dataset.type = 'audio';
-            btn.addEventListener('click', () => downloadMedia(format.format_id, 'audio'));
+            btn.addEventListener('click', () => downloadWithFormat(format.format_id, 'audio'));
             audioFormats.appendChild(btn);
         });
     } else {
@@ -87,14 +156,14 @@ function displayMediaInfo(info) {
         btn.className = 'format-btn';
         btn.textContent = 'Download as MP3';
         btn.dataset.type = 'audio';
-        btn.addEventListener('click', () => downloadMedia(null, 'audio'));
+        btn.addEventListener('click', () => downloadWithFormat(null, 'audio'));
         audioFormats.appendChild(btn);
     }
     
     showMediaInfo();
 }
 
-async function downloadMedia(formatId, type) {
+async function downloadWithFormat(formatId, type) {
     showDownloadProgress();
     hideError();
     hideDownloadResult();

@@ -4,6 +4,23 @@
 A modern, professional Python Flask-based web application that allows users to download videos and music from 1000+ platforms including YouTube, Audiomack, Instagram, TikTok, Facebook, and more. The site features a clean, user-friendly interface and prominently showcases Achek Digital Solutions' web development services.
 
 ## Recent Changes
+- **2025-10-30**: Enhanced Error Handling, Dark Mode & Layout Stability
+  - Improved error messages with platform-specific, user-friendly feedback
+  - Added emojis and clear explanations for each platform (Instagram, YouTube, TikTok, Facebook, Twitter, Audiomack, etc.)
+  - Generic fallback messages for unsupported URLs and invalid links
+  - Implemented light/dark mode toggle:
+    - CSS variables for seamless theme switching
+    - Toggle button in header with moon/sun icons
+    - Auto-detection of system preference
+    - LocalStorage persistence for user preference
+  - Enhanced layout stability:
+    - Fixed overflow issues that could affect scrollbar
+    - Error messages use max-width and word-wrap to prevent layout breaks
+    - Ad containers properly contained with overflow:hidden
+    - Header and footer remain stable with proper positioning
+  - **CRITICAL FIX**: Removed sw.js service worker file and Flask route to prevent unwanted redirects
+  - All changes ensure header, footer, and scrollbar remain unaffected by dynamic content
+
 - **2025-10-30**: Complete Professional Redesign & Security Fixes
   - Complete UI/UX transformation with modern, professional design
   - Implemented Inter font family for professional typography
@@ -86,6 +103,9 @@ A modern, professional Python Flask-based web application that allows users to d
 - Download progress tracking
 - Ad placement zones for monetization
 - Clean, user-friendly interface
+- Light/Dark mode toggle with persistence
+- Platform-specific error messages with helpful guidance
+- Stable layout preventing scrollbar/header/footer issues
 
 ### Structure
 ```

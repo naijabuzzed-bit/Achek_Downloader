@@ -23,21 +23,51 @@
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --border-radius: 12px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    --bg-gradient-start: #667eea;
+    --bg-gradient-end: #764ba2;
+    --card-bg: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --header-bg: #FFFFFF;
+    --footer-bg: #1F2937;
+    --footer-text: #F3F4F6;
+}
+
+body.dark-mode {
+    --bg-gradient-start: #1a1a2e;
+    --bg-gradient-end: #16213e;
+    --card-bg: #0f3460;
+    --text-primary: #e8e8e8;
+    --text-secondary: #b0b0b0;
+    --header-bg: #0f3460;
+    --footer-bg: #0a1929;
+    --footer-text: #e8e8e8;
+    --light-gray: #1e3a5f;
+    --white: #0f3460;
+    --dark: #e8e8e8;
+    --gray: #b0b0b0;
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
     min-height: 100vh;
     line-height: 1.6;
-    color: var(--dark);
+    color: var(--text-primary);
     overflow-x: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
+    position: relative;
+    width: 100%;
 }
 
 .modern-container {
     min-height: 100vh;
     max-width: 1400px;
     margin: 0 auto;
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
 }
 
 /* Top Promo Bar */
@@ -46,6 +76,8 @@ body {
     color: white;
     padding: 12px 20px;
     box-shadow: var(--shadow-md);
+    position: relative;
+    z-index: 999;
 }
 
 .promo-bar-content {
@@ -81,11 +113,13 @@ body {
 
 /* Modern Header */
 .modern-header {
-    background: white;
+    background: var(--header-bg);
     box-shadow: var(--shadow-md);
     position: sticky;
     top: 0;
     z-index: 1000;
+    transition: background 0.3s ease;
+    width: 100%;
 }
 
 .header-content {
@@ -121,14 +155,41 @@ body {
 .logo-text h1 {
     font-size: 22px;
     font-weight: 800;
-    color: var(--dark);
+    color: var(--text-primary);
     margin: 0;
 }
 
 .logo-subtitle {
     font-size: 12px;
-    color: var(--gray);
+    color: var(--text-secondary);
     font-weight: 500;
+}
+
+.theme-toggle-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    background: var(--card-bg);
+    color: var(--primary-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px) rotate(15deg);
+    box-shadow: var(--shadow-lg);
+}
+
+.theme-toggle-btn:active {
+    transform: translateY(0) rotate(0deg);
 }
 
 .header-actions {
@@ -172,9 +233,10 @@ body {
 
 /* Hero Section */
 .hero-section {
-    background: white;
+    background: var(--card-bg);
     padding: 60px 24px;
     text-align: center;
+    transition: background 0.3s ease;
 }
 
 .hero-content {
@@ -185,14 +247,14 @@ body {
 .hero-title {
     font-size: clamp(28px, 5vw, 42px);
     font-weight: 800;
-    color: var(--dark);
+    color: var(--text-primary);
     margin-bottom: 16px;
     line-height: 1.2;
 }
 
 .hero-description {
     font-size: clamp(16px, 3vw, 20px);
-    color: var(--gray);
+    color: var(--text-secondary);
     margin-bottom: 30px;
 }
 
@@ -233,11 +295,12 @@ body {
 
 /* Download Card */
 .download-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 40px;
     box-shadow: var(--shadow-xl);
     margin-bottom: 30px;
+    transition: background 0.3s ease;
 }
 
 .card-header {
@@ -248,7 +311,7 @@ body {
 .card-header h2 {
     font-size: 26px;
     font-weight: 700;
-    color: var(--dark);
+    color: var(--text-primary);
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -257,7 +320,7 @@ body {
 }
 
 .card-header p {
-    color: var(--gray);
+    color: var(--text-secondary);
     font-size: 15px;
 }
 
@@ -386,6 +449,9 @@ body {
     background: #FEE2E2;
     color: #991B1B;
     padding: 16px 20px;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
     border-radius: 10px;
     margin: 20px 0;
     border-left: 4px solid var(--danger-color);
@@ -512,8 +578,10 @@ body {
 
 .ad-container {
     min-height: 100px;
+    max-width: 100%;
     display: flex;
     align-items: center;
+    overflow: hidden;
     justify-content: center;
 }
 
@@ -572,17 +640,18 @@ body {
 
 /* Platforms Section */
 .platforms-section {
-    background: white;
+    background: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 40px;
     box-shadow: var(--shadow-xl);
     margin-bottom: 30px;
+    transition: background 0.3s ease;
 }
 
 .platforms-section h3 {
     font-size: 24px;
     font-weight: 700;
-    color: var(--dark);
+    color: var(--text-primary);
     margin-bottom: 24px;
     display: flex;
     align-items: center;
@@ -628,7 +697,7 @@ body {
     display: block;
     font-weight: 600;
     font-size: 14px;
-    color: var(--dark);
+    color: var(--text-primary);
 }
 
 .platform-badge {
@@ -655,11 +724,12 @@ body {
 
 /* Achek Showcase */
 .achek-showcase {
-    background: white;
+    background: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 50px 40px;
     box-shadow: var(--shadow-xl);
     margin-bottom: 30px;
+    transition: background 0.3s ease;
 }
 
 .showcase-header {
@@ -670,7 +740,7 @@ body {
 .showcase-header h2 {
     font-size: 32px;
     font-weight: 800;
-    color: var(--dark);
+    color: var(--text-primary);
     margin-bottom: 12px;
     display: flex;
     align-items: center;
@@ -680,7 +750,7 @@ body {
 
 .showcase-subtitle {
     font-size: 16px;
-    color: var(--gray);
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -749,13 +819,13 @@ body {
 .service-item h4 {
     font-size: 18px;
     font-weight: 700;
-    color: var(--dark);
+    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
 .service-item p {
     font-size: 14px;
-    color: var(--gray);
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
@@ -844,17 +914,18 @@ body {
 
 /* FAQ Section */
 .faq-section {
-    background: white;
+    background: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 40px;
     box-shadow: var(--shadow-xl);
     margin-bottom: 30px;
+    transition: background 0.3s ease;
 }
 
 .faq-section h3 {
     font-size: 24px;
     font-weight: 700;
-    color: var(--dark);
+    color: var(--text-primary);
     margin-bottom: 24px;
     display: flex;
     align-items: center;
@@ -877,23 +948,25 @@ body {
 .faq-item h4 {
     font-size: 16px;
     font-weight: 700;
-    color: var(--dark);
+    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
 .faq-item p {
     font-size: 14px;
-    color: var(--gray);
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
 /* Modern Footer */
 .modern-footer {
-    background: var(--dark);
-    color: white;
+    background: var(--footer-bg);
+    color: var(--footer-text);
     padding: 50px 24px 30px;
     position: relative;
     z-index: 100;
+    width: 100%;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .footer-content {

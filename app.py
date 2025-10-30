@@ -35,11 +35,6 @@ cleanup_thread.start()
 def index():
     return render_template('index.html')
 
-@app.route('/sw.js')
-def service_worker():
-    """Serve the Monetag service worker file"""
-    return send_file('sw.js', mimetype='application/javascript')
-
 @app.route('/fetch_info', methods=['POST'])
 def fetch_info():
     try:
@@ -234,16 +229,33 @@ def fetch_info():
         error_message = str(e)
         print(f"ERROR: {error_message}")
 
-        # Provide more helpful error messages
+        # Provide more helpful, user-friendly error messages
         if 'twitter' in error_message.lower() or 'x.com' in url.lower():
             if 'no video' in error_message.lower():
-                error_message = "This tweet contains only images/text, not video. Twitter/X video downloads work for tweets with actual videos."
+                error_message = "😕 This tweet doesn't have a video. We can only download tweets that contain videos."
             else:
-                error_message = f"Twitter/X error: {error_message}. Make sure the tweet is public and contains a video."
+                error_message = "❌ Couldn't access this Twitter/X content. Make sure the tweet is public and contains media."
         elif 'instagram' in error_message.lower():
-            error_message = "Instagram error: Content may be private, deleted, or rate-limited. Please wait a few minutes and try again with a public post URL."
+            error_message = "⚠️ Instagram temporarily blocked this request. Please wait 2-3 minutes and try again. Make sure you're using a public post or reel link."
         elif 'audiomack' in error_message.lower():
-            error_message = "Audiomack error: Make sure the song URL is correct and publicly available."
+            error_message = "🎵 Couldn't find this Audiomack song. Please check the link and make sure the song is publicly available."
+        elif 'tiktok' in error_message.lower():
+            error_message = "📱 TikTok download failed. Make sure the video is public and the link is correct."
+        elif 'facebook' in error_message.lower():
+            error_message = "📘 Facebook content couldn't be accessed. Only public videos can be downloaded."
+        elif 'youtube' in error_message.lower():
+            if 'private' in error_message.lower():
+                error_message = "🔒 This YouTube video is private or unavailable."
+            elif 'age' in error_message.lower():
+                error_message = "🔞 Age-restricted YouTube content cannot be downloaded without login."
+            else:
+                error_message = "🎬 YouTube download failed. The video might be region-locked or removed."
+        elif 'unsupported' in error_message.lower():
+            error_message = "❓ This website is not supported yet. We support YouTube, Instagram, TikTok, Facebook, Audiomack, and 1000+ other platforms."
+        elif 'url' in error_message.lower() or 'invalid' in error_message.lower():
+            error_message = "🔗 Invalid link format. Please copy and paste the full URL from your browser."
+        else:
+            error_message = f"⚠️ Something went wrong: {error_message}. Please try again or use a different link."
 
         return jsonify({'error': error_message}), 400
 

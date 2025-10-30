@@ -503,6 +503,16 @@ input[type="text"]:focus::placeholder {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 2px solid transparent;
     cursor: default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.platform-item i {
+    font-size: 1.2em;
+    color: #667eea;
+    transition: transform 0.3s ease;
 }
 
 .platform-item:hover {
@@ -510,6 +520,11 @@ input[type="text"]:focus::placeholder {
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
     border-color: rgba(102, 126, 234, 0.3);
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+}
+
+.platform-item:hover i {
+    transform: scale(1.2) rotate(5deg);
+    color: #764ba2;
 }
 
 .platform-item.platform-disabled {

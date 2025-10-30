@@ -20,6 +20,11 @@ def service_worker():
     """Serve service worker with correct MIME type"""
     return send_from_directory('.', 'sw.js', mimetype='application/javascript')
 
+@app.route('/sitemap.xml')
+def sitemap():
+    """Serve sitemap for SEO"""
+    return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
+
 @app.route('/fetch_info', methods=['POST'])
 def fetch_info():
     try:

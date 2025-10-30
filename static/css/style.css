@@ -452,8 +452,14 @@ body {
 
 .format-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .format-list {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
 }
 
 .format-btn {
@@ -463,10 +469,18 @@ body {
     border-radius: 10px;
     color: var(--primary-color);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     transition: var(--transition);
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.format-btn i {
+    font-size: 14px;
 }
 
 .format-btn:hover {

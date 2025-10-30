@@ -178,8 +178,8 @@ def fetch_info():
             'thumbnail': info.get('thumbnail', ''),
             'uploader': info.get('uploader', 'Unknown'),
             'duration': info.get('duration_string', 'Unknown'),
-            'video_formats': video_formats[:10],
-            'audio_formats': audio_formats[:5]
+            'video_formats': video_formats[:15],  # Show up to 15 video options
+            'audio_formats': audio_formats[:8]    # Show up to 8 audio options
         })
 
     except Exception as e:

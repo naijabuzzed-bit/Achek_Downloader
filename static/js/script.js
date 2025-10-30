@@ -89,14 +89,32 @@ function displayMediaInfo(info) {
     bestVideoBtn.addEventListener('click', () => handleFormatDownload(bestVideoBtn, 'best', 'video'));
     videoFormats.appendChild(bestVideoBtn);
     
+    // Add standard quality options
+    const standardQualities = [
+        { id: 'bestvideo[height<=2160]+bestaudio/best', label: '4K (2160p)', icon: 'crown' },
+        { id: 'bestvideo[height<=1440]+bestaudio/best', label: '2K (1440p)', icon: 'gem' },
+        { id: 'bestvideo[height<=1080]+bestaudio/best', label: 'Full HD (1080p)', icon: 'video' },
+        { id: 'bestvideo[height<=720]+bestaudio/best', label: 'HD (720p)', icon: 'video' },
+        { id: 'bestvideo[height<=480]+bestaudio/best', label: 'SD (480p)', icon: 'video' },
+        { id: 'bestvideo[height<=360]+bestaudio/best', label: 'Low (360p)', icon: 'video' }
+    ];
+    
+    standardQualities.forEach(quality => {
+        const btn = document.createElement('button');
+        btn.className = 'format-btn';
+        btn.type = 'button';
+        btn.innerHTML = `<i class="fas fa-${quality.icon}"></i> ${quality.label}`;
+        btn.dataset.formatId = quality.id;
+        btn.dataset.type = 'video';
+        btn.addEventListener('click', () => handleFormatDownload(btn, quality.id, 'video'));
+        videoFormats.appendChild(btn);
+    });
+    
     if (info.video_formats && info.video_formats.length > 0) {
         info.video_formats.forEach(format => {
             const btn = createFormatButton(format, 'video');
             videoFormats.appendChild(btn);
         });
-    } else {
-        const btn = createDefaultButton('video');
-        videoFormats.appendChild(btn);
     }
     
     // Display audio formats
@@ -113,14 +131,31 @@ function displayMediaInfo(info) {
     bestAudioBtn.addEventListener('click', () => handleFormatDownload(bestAudioBtn, 'bestaudio', 'audio'));
     audioFormats.appendChild(bestAudioBtn);
     
+    // Add standard audio quality options
+    const standardAudioQualities = [
+        { id: 'bestaudio[abr<=320]', label: 'High Quality (320kbps)', icon: 'music' },
+        { id: 'bestaudio[abr<=256]', label: 'Very Good (256kbps)', icon: 'music' },
+        { id: 'bestaudio[abr<=192]', label: 'Good (192kbps)', icon: 'music' },
+        { id: 'bestaudio[abr<=128]', label: 'Medium (128kbps)', icon: 'music' },
+        { id: 'bestaudio[abr<=96]', label: 'Low (96kbps)', icon: 'music' }
+    ];
+    
+    standardAudioQualities.forEach(quality => {
+        const btn = document.createElement('button');
+        btn.className = 'format-btn';
+        btn.type = 'button';
+        btn.innerHTML = `<i class="fas fa-${quality.icon}"></i> ${quality.label}`;
+        btn.dataset.formatId = quality.id;
+        btn.dataset.type = 'audio';
+        btn.addEventListener('click', () => handleFormatDownload(btn, quality.id, 'audio'));
+        audioFormats.appendChild(btn);
+    });
+    
     if (info.audio_formats && info.audio_formats.length > 0) {
         info.audio_formats.forEach(format => {
             const btn = createFormatButton(format, 'audio');
             audioFormats.appendChild(btn);
         });
-    } else {
-        const btn = createDefaultButton('audio');
-        audioFormats.appendChild(btn);
     }
     
     showMediaInfo();

@@ -199,12 +199,6 @@ function createDefaultButton(type) {
 
 // Handle format download - immediate download
 async function handleFormatDownload(button, formatId, type) {
-    // Only trigger ad once per button click
-    if (button.dataset.adTriggered !== 'true') {
-        triggerAdOnDownload();
-        button.dataset.adTriggered = 'true';
-    }
-    
     // Disable button and show loading
     button.disabled = true;
     button.style.pointerEvents = 'none';
@@ -407,18 +401,10 @@ function hideDownloadResult() {
     if (resultEl) fadeOut(resultEl);
 }
 
-// Trigger ad only on download button clicks - one time per button
+// Ad function removed - no redirects anywhere on the page
 function triggerAdOnDownload() {
-    // Only trigger ad popup when user actually clicks download
-    // Ads limited to download buttons only - no page-wide redirects
-    // No interference with header, footer, input, or other UI elements
-    try {
-        if (typeof window.monetag !== 'undefined' && window.monetag.trigger) {
-            window.monetag.trigger();
-        }
-    } catch (e) {
-        console.log('Ad trigger skipped:', e);
-    }
+    // Ads disabled to prevent unwanted redirects
+    console.log('Ads disabled for better user experience');
 }
 
 console.log('Media Downloader by Achek Digital Solutions - Ready!');

@@ -24,7 +24,7 @@ async function fetchMediaInfo(url) {
     hideDownloadResult();
     
     try {
-        const response = await fetch('/get-info', {
+        const response = await fetch('/fetch_info', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

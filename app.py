@@ -457,4 +457,8 @@ def download():
         return jsonify({'error': f'Download failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
+    # For local development
     app.run(host='0.0.0.0', port=5000, debug=False)
+
+# For production WSGI server (required by shared hosting)
+# The 'app' object is what the server will use

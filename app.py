@@ -114,7 +114,7 @@ def fetch_info():
                 # Remove duplicates and sort
                 video_formats = list({v['format_id']: v for v in video_formats}.values())
                 audio_formats = list({a['format_id']: a for a in audio_formats}.values())
-                
+
                 video_formats = sorted(video_formats, key=lambda x: int(x['quality'].replace('p', '')) if x['quality'].replace('p', '').isdigit() else 0, reverse=True)
                 audio_formats = sorted(audio_formats, key=lambda x: int(x['quality'].replace('kbps', '')) if 'kbps' in x['quality'] else 0, reverse=True)
 
@@ -145,7 +145,22 @@ def fetch_info():
         else:
             return jsonify({'error': f'Unable to fetch media: {error_msg}. Make sure the URL is correct and the content is public.'}), 400
     except Exception as e:
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+        error_message = str(e)
+        print(f"ERROR: {error_message}")
+
+        # Provide more helpful error messages
+        if 'twitter' in error_message.lower() or 'x.com' in url.lower():
+            if 'no video' in error_message.lower():
+                error_message = "This tweet contains only images/text, not video. Twitter/X video downloads work for tweets with actual videos."
+            else:
+                error_message = f"Twitter/X error: {error_message}. Make sure the tweet is public and contains a video."
+        elif 'instagram' in error_message.lower():
+            error_message = "Instagram error: Content may be private, deleted, or rate-limited. Please wait a few minutes and try again with a public post URL."
+        elif 'audiomack' in error_message.lower():
+            error_message = "Audiomack error: Make sure the song URL is correct and publicly available."
+
+        return jsonify({'error': error_message}), 400
+
 
 @app.route('/download', methods=['POST'])
 def download():

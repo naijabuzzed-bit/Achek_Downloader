@@ -404,8 +404,13 @@ function hideDownloadResult() {
 // Trigger ad only on download button clicks
 function triggerAdOnDownload() {
     // Only trigger ad popup when user actually clicks download
-    if (typeof window.monetag !== 'undefined') {
-        window.monetag.trigger();
+    // Ads limited to download buttons only - no page-wide redirects
+    try {
+        if (typeof window.monetag !== 'undefined') {
+            window.monetag.trigger();
+        }
+    } catch (e) {
+        console.log('Ad trigger skipped');
     }
 }
 

@@ -191,15 +191,24 @@ def download():
         data = request.json
         url = data.get('url')
         format_id = data.get('format_id')
+        download_type = data.get('type', 'video')
         
         if not url or not format_id:
             return jsonify({'error': 'URL and format_id are required'}), 400
 
-        filename = f"download_{format_id}.%(ext)s"
+        # Handle best quality selectors
+        if format_id == 'best':
+            format_selector = 'bestvideo+bestaudio/best'
+        elif format_id == 'bestaudio':
+            format_selector = 'bestaudio/best'
+        else:
+            format_selector = format_id
+
+        filename = f"download_{format_id}_{int(time.time())}.%(ext)s"
         filepath = os.path.join(DOWNLOAD_FOLDER, filename)
 
         ydl_opts = {
-            'format': format_id,
+            'format': format_selector,
             'outtmpl': filepath,
             'quiet': True,
             'no_warnings': True,
@@ -211,6 +220,14 @@ def download():
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             }
         }
+        
+        # Add audio extraction for audio downloads
+        if download_type == 'audio' or format_id == 'bestaudio':
+            ydl_opts['postprocessors'] = [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '320',
+            }]
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])

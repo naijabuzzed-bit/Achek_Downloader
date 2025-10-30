@@ -476,6 +476,27 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+.format-btn.best-quality {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: white;
+    border-color: #F59E0B;
+    font-weight: 700;
+    position: relative;
+}
+
+.format-btn.best-quality:hover {
+    background: linear-gradient(135deg, #D97706, #B45309);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+}
+
+.ad-container {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .download-progress {
     text-align: center;
     padding: 40px 20px;

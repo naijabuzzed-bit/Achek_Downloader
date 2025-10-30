@@ -79,6 +79,16 @@ function displayMediaInfo(info) {
     const videoFormats = document.getElementById('videoFormats');
     videoFormats.innerHTML = '';
     
+    // Add best quality option first
+    const bestVideoBtn = document.createElement('button');
+    bestVideoBtn.className = 'format-btn best-quality';
+    bestVideoBtn.type = 'button';
+    bestVideoBtn.innerHTML = '<i class="fas fa-star"></i> Best Quality Available';
+    bestVideoBtn.dataset.formatId = 'best';
+    bestVideoBtn.dataset.type = 'video';
+    bestVideoBtn.addEventListener('click', () => handleFormatDownload(bestVideoBtn, 'best', 'video'));
+    videoFormats.appendChild(bestVideoBtn);
+    
     if (info.video_formats && info.video_formats.length > 0) {
         info.video_formats.forEach(format => {
             const btn = createFormatButton(format, 'video');
@@ -92,6 +102,16 @@ function displayMediaInfo(info) {
     // Display audio formats
     const audioFormats = document.getElementById('audioFormats');
     audioFormats.innerHTML = '';
+    
+    // Add best audio quality option first
+    const bestAudioBtn = document.createElement('button');
+    bestAudioBtn.className = 'format-btn best-quality';
+    bestAudioBtn.type = 'button';
+    bestAudioBtn.innerHTML = '<i class="fas fa-star"></i> Best Quality MP3 (320kbps)';
+    bestAudioBtn.dataset.formatId = 'bestaudio';
+    bestAudioBtn.dataset.type = 'audio';
+    bestAudioBtn.addEventListener('click', () => handleFormatDownload(bestAudioBtn, 'bestaudio', 'audio'));
+    audioFormats.appendChild(bestAudioBtn);
     
     if (info.audio_formats && info.audio_formats.length > 0) {
         info.audio_formats.forEach(format => {
@@ -142,41 +162,24 @@ function createDefaultButton(type) {
     return btn;
 }
 
-// Handle format download with confirmation
+// Handle format download - immediate download
 async function handleFormatDownload(button, formatId, type) {
-    // First click - ask for confirmation
-    if (button.dataset.clicked === 'false') {
-        button.dataset.clicked = 'true';
-        button.textContent = '✓ Click again to confirm download';
-        button.style.background = 'linear-gradient(135deg, #F59E0B, #D97706)';
-        button.style.color = 'white';
-        button.style.borderColor = '#F59E0B';
-        button.style.transform = 'scale(1.05)';
-        button.style.boxShadow = '0 4px 15px rgba(245, 158, 11, 0.4)';
-        
-        setTimeout(() => {
-            button.style.transform = 'scale(1)';
-        }, 200);
-        
-        // Reset after 5 seconds if not confirmed
-        setTimeout(() => {
-            if (button.dataset.clicked === 'true') {
-                resetButton(button);
-            }
-        }, 5000);
-        
-        return;
-    }
-    
-    // Second click - proceed with download
+    // Disable button and show loading
     button.style.pointerEvents = 'none';
+    const originalText = button.textContent;
     button.innerHTML = '<span>⏳</span> Downloading...';
+    button.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+    button.style.color = 'white';
     
-    await downloadWithFormat(formatId, type);
-    
-    resetAllFormatButtons();
-    
-    button.style.pointerEvents = '';
+    try {
+        await downloadWithFormat(formatId, type);
+    } catch (error) {
+        button.textContent = originalText;
+        button.style.background = '';
+        button.style.color = '';
+    } finally {
+        button.style.pointerEvents = '';
+    }
 }
 
 // Reset single button

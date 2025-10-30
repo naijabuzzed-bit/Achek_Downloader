@@ -88,6 +88,10 @@ def get_info():
             return jsonify({'error': '🔐 Private Content: This content requires login or is private. Try public content instead.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
             return jsonify({'error': '🌍 Geo-Restricted: This content may be restricted in your region.'}), 400
+        elif '404' in error_message or 'not found' in error_message.lower():
+            return jsonify({'error': '❌ Content Not Found: The URL may be incorrect, the content may have been removed, or it may be private. Please check the URL and try again.'}), 404
+        elif 'audiomack' in error_message.lower():
+            return jsonify({'error': '🎵 Audiomack Error: Unable to access this track. The track may have been removed, is private, or the URL format has changed. Try a different Audiomack track or use the direct track URL.'}), 400
         return jsonify({'error': f'Error: {error_message}'}), 500
 
 @app.route('/download', methods=['POST'])
@@ -161,6 +165,10 @@ def download():
             return jsonify({'error': '🔐 Private Content: This content requires login or is private. Try public content instead.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
             return jsonify({'error': '🌍 Geo-Restricted: This content may be restricted in your region.'}), 400
+        elif '404' in error_message or 'not found' in error_message.lower():
+            return jsonify({'error': '❌ Content Not Found: The URL may be incorrect, the content may have been removed, or it may be private. Please check the URL and try again.'}), 404
+        elif 'audiomack' in error_message.lower():
+            return jsonify({'error': '🎵 Audiomack Error: Unable to access this track. The track may have been removed, is private, or the URL format has changed. Try a different Audiomack track or use the direct track URL.'}), 400
         return jsonify({'error': f'Error: {error_message}'}), 500
 
 @app.route('/download-file/<path:filename>')

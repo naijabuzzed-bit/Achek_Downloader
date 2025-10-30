@@ -105,21 +105,31 @@ function displayMediaInfo(info) {
 }
 
 async function handleFormatDownload(button, formatId, type) {
-    // Check if this button was already clicked once
     if (button.dataset.clicked === 'false') {
         button.dataset.clicked = 'true';
-        button.textContent = 'Click again to download';
-        button.style.background = '#ffc107';
+        button.textContent = '✓ Click again to confirm';
+        button.style.background = 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)';
         button.style.color = '#000';
         button.style.borderColor = '#ffc107';
+        button.style.transform = 'scale(1.05)';
+        button.style.boxShadow = '0 4px 15px rgba(255, 193, 7, 0.4)';
+        
+        button.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        setTimeout(() => {
+            button.style.transform = 'scale(1)';
+        }, 200);
+        
         return;
     }
     
-    // Second click - proceed with download
+    button.style.pointerEvents = 'none';
+    button.innerHTML = '<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Downloading...';
+    
     await downloadWithFormat(formatId, type);
     
-    // Reset all buttons
     resetAllFormatButtons();
+    
+    button.style.pointerEvents = '';
 }
 
 function resetAllFormatButtons() {
@@ -194,53 +204,87 @@ function formatDuration(seconds) {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
+function fadeIn(element) {
+    element.style.opacity = '0';
+    element.style.display = 'block';
+    element.style.transition = 'opacity 0.4s ease-in-out';
+    setTimeout(() => {
+        element.style.opacity = '1';
+    }, 10);
+}
+
+function fadeOut(element, callback) {
+    element.style.transition = 'opacity 0.3s ease-in-out';
+    element.style.opacity = '0';
+    setTimeout(() => {
+        element.style.display = 'none';
+        if (callback) callback();
+    }, 300);
+}
+
 function showLoading() {
-    document.getElementById('loadingIndicator').style.display = 'block';
+    const loadingEl = document.getElementById('loadingIndicator');
+    fadeIn(loadingEl);
 }
 
 function hideLoading() {
-    document.getElementById('loadingIndicator').style.display = 'none';
+    const loadingEl = document.getElementById('loadingIndicator');
+    fadeOut(loadingEl);
 }
 
 function showError(message) {
     const errorEl = document.getElementById('errorMessage');
     errorEl.textContent = message;
-    errorEl.style.display = 'block';
+    fadeIn(errorEl);
     
-    // Scroll to error
-    errorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
 }
 
 function hideError() {
-    document.getElementById('errorMessage').style.display = 'none';
+    const errorEl = document.getElementById('errorMessage');
+    fadeOut(errorEl);
 }
 
 function showMediaInfo() {
-    document.getElementById('mediaInfo').style.display = 'block';
+    const mediaInfoEl = document.getElementById('mediaInfo');
+    fadeIn(mediaInfoEl);
+    
+    setTimeout(() => {
+        mediaInfoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 200);
 }
 
 function hideMediaInfo() {
-    document.getElementById('mediaInfo').style.display = 'none';
+    const mediaInfoEl = document.getElementById('mediaInfo');
+    fadeOut(mediaInfoEl);
 }
 
 function showDownloadProgress() {
-    document.getElementById('downloadProgress').style.display = 'block';
+    const progressEl = document.getElementById('downloadProgress');
+    fadeIn(progressEl);
 }
 
 function hideDownloadProgress() {
-    document.getElementById('downloadProgress').style.display = 'none';
+    const progressEl = document.getElementById('downloadProgress');
+    fadeOut(progressEl);
 }
 
 function showDownloadResult(downloadUrl, filename) {
     const downloadLink = document.getElementById('downloadLink');
     downloadLink.href = downloadUrl;
     downloadLink.download = filename;
-    document.getElementById('downloadResult').style.display = 'block';
     
-    // Scroll to result
-    document.getElementById('downloadResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const resultEl = document.getElementById('downloadResult');
+    fadeIn(resultEl);
+    
+    setTimeout(() => {
+        resultEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 200);
 }
 
 function hideDownloadResult() {
-    document.getElementById('downloadResult').style.display = 'none';
+    const resultEl = document.getElementById('downloadResult');
+    fadeOut(resultEl);
 }

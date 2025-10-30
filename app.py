@@ -49,9 +49,12 @@ def get_info():
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+            
+            if not info:
+                return jsonify({'error': 'Unable to fetch media information'}), 400
 
             formats = []
-            if 'formats' in info:
+            if info and 'formats' in info and info['formats']:
                 seen = set()
                 for f in info['formats']:
                     if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
@@ -69,7 +72,7 @@ def get_info():
                             seen.add(quality)
 
             audio_formats = []
-            if 'formats' in info:
+            if info and 'formats' in info and info['formats']:
                 seen_audio = set()
                 for f in info['formats']:
                     if f.get('acodec') != 'none' and f.get('vcodec') == 'none':
@@ -88,10 +91,10 @@ def get_info():
                             seen_audio.add(format_label)
 
             return jsonify({
-                'title': info.get('title', 'Unknown'),
-                'thumbnail': info.get('thumbnail', ''),
-                'duration': info.get('duration', 0),
-                'uploader': info.get('uploader', 'Unknown'),
+                'title': info.get('title', 'Unknown') if info else 'Unknown',
+                'thumbnail': info.get('thumbnail', '') if info else '',
+                'duration': info.get('duration', 0) if info else 0,
+                'uploader': info.get('uploader', 'Unknown') if info else 'Unknown',
                 'formats': formats[:10],
                 'audio_formats': audio_formats[:5]
             })
@@ -151,19 +154,19 @@ def download():
         }
 
         if download_type == 'audio':
-            if format_id:
-                ydl_opts['format'] = format_id
-            else:
-                ydl_opts['format'] = 'bestaudio/best'
+            ydl_opts['format'] = 'bestaudio/best'
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '192',
+                'preferredquality': '320',
             }]
-        elif format_id:
-            ydl_opts['format'] = format_id
+            ydl_opts['writethumbnail'] = False
         else:
-            ydl_opts['format'] = 'best'
+            if format_id:
+                ydl_opts['format'] = format_id
+            else:
+                ydl_opts['format'] = 'best'
+            ydl_opts['merge_output_format'] = 'mp4'
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)

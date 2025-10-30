@@ -199,12 +199,16 @@ function createDefaultButton(type) {
 
 // Handle format download - immediate download
 async function handleFormatDownload(button, formatId, type) {
-    // Trigger ad only on download button click
-    triggerAdOnDownload();
+    // Only trigger ad once per button click
+    if (button.dataset.adTriggered !== 'true') {
+        triggerAdOnDownload();
+        button.dataset.adTriggered = 'true';
+    }
     
     // Disable button and show loading
+    button.disabled = true;
     button.style.pointerEvents = 'none';
-    const originalText = button.textContent;
+    const originalText = button.innerHTML;
     button.innerHTML = '<span>⏳</span> Downloading...';
     button.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
     button.style.color = 'white';
@@ -212,10 +216,12 @@ async function handleFormatDownload(button, formatId, type) {
     try {
         await downloadWithFormat(formatId, type);
     } catch (error) {
-        button.textContent = originalText;
+        button.innerHTML = originalText;
         button.style.background = '';
         button.style.color = '';
+        button.dataset.adTriggered = 'false';
     } finally {
+        button.disabled = false;
         button.style.pointerEvents = '';
     }
 }
@@ -401,16 +407,17 @@ function hideDownloadResult() {
     if (resultEl) fadeOut(resultEl);
 }
 
-// Trigger ad only on download button clicks
+// Trigger ad only on download button clicks - one time per button
 function triggerAdOnDownload() {
     // Only trigger ad popup when user actually clicks download
     // Ads limited to download buttons only - no page-wide redirects
+    // No interference with header, footer, input, or other UI elements
     try {
-        if (typeof window.monetag !== 'undefined') {
+        if (typeof window.monetag !== 'undefined' && window.monetag.trigger) {
             window.monetag.trigger();
         }
     } catch (e) {
-        console.log('Ad trigger skipped');
+        console.log('Ad trigger skipped:', e);
     }
 }
 

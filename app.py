@@ -67,6 +67,9 @@ def fetch_info():
                 'instagram': {
                     'include_stories': True,
                 },
+                'twitter': {
+                    'api': 'syndication',
+                },
             },
         }
 
@@ -177,8 +180,10 @@ def download():
 
         if download_type == 'audio':
             output_template = os.path.join(DOWNLOAD_FOLDER, f'audio_{timestamp}.%(ext)s')
+            # Dynamic format selection for audio
+            audio_format = format_id if format_id else 'bestaudio/best'
             ydl_opts = {
-                'format': format_id if format_id else 'bestaudio/best',
+                'format': audio_format,
                 'outtmpl': output_template,
                 'quiet': True,
                 'no_warnings': True,
@@ -189,19 +194,24 @@ def download():
                 }],
                 'socket_timeout': 30,
                 'retries': 5,
+                'geo_bypass': True,
                 'http_headers': {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 },
             }
         else:
             output_template = os.path.join(DOWNLOAD_FOLDER, f'video_{timestamp}.%(ext)s')
+            # Dynamic format selection for video
+            video_format = format_id if format_id else 'bestvideo+bestaudio/best'
             ydl_opts = {
-                'format': format_id if format_id else 'best',
+                'format': video_format,
                 'outtmpl': output_template,
                 'quiet': True,
                 'no_warnings': True,
+                'merge_output_format': 'mp4',
                 'socket_timeout': 30,
                 'retries': 5,
+                'geo_bypass': True,
                 'http_headers': {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 },

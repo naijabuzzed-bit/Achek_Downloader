@@ -171,6 +171,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Ensure critical UI elements are always clickable */
+        .modern-header, .modern-footer, .input-wrapper, .fetch-btn, .download-form {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 9999 !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Monetag ads will only show on download button clicks -->

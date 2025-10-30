@@ -85,7 +85,8 @@ body {
     box-shadow: var(--shadow-md);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 9999;
+    pointer-events: auto;
 }
 
 .header-content {
@@ -298,6 +299,9 @@ body {
     font-family: inherit;
     transition: var(--transition);
     background: white;
+    position: relative;
+    z-index: 100;
+    pointer-events: auto;
 }
 
 .input-wrapper input:focus {
@@ -320,6 +324,9 @@ body {
     align-items: center;
     gap: 10px;
     white-space: nowrap;
+    position: relative;
+    z-index: 100;
+    pointer-events: auto;
 }
 
 .fetch-btn:hover {
@@ -886,6 +893,9 @@ body {
     background: var(--dark);
     color: white;
     padding: 50px 24px 30px;
+    position: relative;
+    z-index: 9999;
+    pointer-events: auto;
 }
 
 .footer-content {

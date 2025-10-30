@@ -28,23 +28,33 @@ def get_info():
             'no_warnings': True,
             'extract_flat': False,
             'nocheckcertificate': True,
+            'ignoreerrors': False,
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-us,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate',
                 'Sec-Fetch-Mode': 'navigate',
             },
             'extractor_args': {
                 'youtube': {
                     'player_client': ['android', 'ios', 'web'],
                     'player_skip': ['webpage', 'configs'],
-                    'skip': ['dash', 'hls']
+                },
+                'instagram': {
+                    'api_version': 'v1',
+                },
+                'tiktok': {
+                    'api_hostname': 'api22-normal-c-useast2a.tiktokv.com',
                 }
             },
             'age_limit': None,
             'geo_bypass': True,
-            'geo_bypass_country': 'US'
+            'geo_bypass_country': 'US',
+            'socket_timeout': 30,
+            'retries': 3,
+            'fragment_retries': 3,
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -100,20 +110,24 @@ def get_info():
             })
 
     except Exception as e:
-        error_message = str(e)
+        error_message = str(e).lower()
         
-        if 'private' in error_message.lower() or 'login' in error_message.lower():
-            return jsonify({'error': '🔐 This content is private or requires login. Upgrade to premium for access to protected content.'}), 400
-        elif 'geo' in error_message.lower() or 'location' in error_message.lower():
-            return jsonify({'error': '🌍 This content may be restricted in your region. Premium users can access geo-restricted content.'}), 400
-        elif '404' in error_message or 'not found' in error_message.lower():
-            return jsonify({'error': '❌ Content not found. Please check the URL and try again.'}), 404
-        elif 'drm' in error_message.lower() or 'spotify' in error_message.lower() or 'netflix' in error_message.lower():
-            return jsonify({'error': '⭐ Premium Content Detected: This platform requires a premium subscription. Upgrade to download from Spotify, Netflix, and other protected platforms.'}), 400
-        elif 'audiomack' in error_message.lower():
-            return jsonify({'error': '🎵 Audiomack download failed. Please verify the URL is correct (format: https://audiomack.com/username/song/song-title).'}), 400
+        if 'spotify' in error_message:
+            return jsonify({'error': '🚫 Spotify uses DRM protection and requires authentication. Spotify downloads are not supported due to copyright protection. Try YouTube Music, SoundCloud, or other platforms instead.'}), 400
+        elif 'netflix' in error_message or 'prime video' in error_message or 'disney' in error_message or 'hulu' in error_message:
+            return jsonify({'error': '🚫 Netflix, Disney+, Prime Video and similar streaming services use heavy DRM encryption. These platforms cannot be downloaded due to copyright protection.'}), 400
+        elif 'audiomack' in error_message:
+            return jsonify({'error': '🎵 Audiomack Error: Please check the URL format. Try the direct song URL like: https://audiomack.com/artist/song-title'}), 400
+        elif 'private' in error_message or 'login' in error_message:
+            return jsonify({'error': '🔐 This content is private or requires login. Try a public video instead.'}), 400
+        elif 'geo' in error_message or 'location' in error_message or 'not available' in error_message:
+            return jsonify({'error': '🌍 This content may be restricted in your region or not available.'}), 400
+        elif '404' in error_message or 'not found' in error_message:
+            return jsonify({'error': '❌ Content not found. Please verify the URL is correct and the content still exists.'}), 404
+        elif 'copyright' in error_message or 'removed' in error_message:
+            return jsonify({'error': '⚠️ This content has been removed due to copyright claims.'}), 400
         
-        return jsonify({'error': f'Unable to process this URL. Try a different link or upgrade to premium for better compatibility.'}), 500
+        return jsonify({'error': f'Unable to process this URL. Supported platforms: YouTube, Instagram, TikTok, Facebook, Twitter, Vimeo, Dailymotion, SoundCloud, and 1000+ others. Note: DRM-protected platforms (Spotify, Netflix, etc.) are not supported.'}), 500
 
 @app.route('/download', methods=['POST'])
 def download():
@@ -134,23 +148,33 @@ def download():
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
+            'ignoreerrors': False,
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-us,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate',
                 'Sec-Fetch-Mode': 'navigate',
             },
             'extractor_args': {
                 'youtube': {
                     'player_client': ['android', 'ios', 'web'],
                     'player_skip': ['webpage', 'configs'],
-                    'skip': ['dash', 'hls']
+                },
+                'instagram': {
+                    'api_version': 'v1',
+                },
+                'tiktok': {
+                    'api_hostname': 'api22-normal-c-useast2a.tiktokv.com',
                 }
             },
             'age_limit': None,
             'geo_bypass': True,
-            'geo_bypass_country': 'US'
+            'geo_bypass_country': 'US',
+            'socket_timeout': 30,
+            'retries': 3,
+            'fragment_retries': 3,
         }
 
         if download_type == 'audio':
@@ -195,20 +219,24 @@ def download():
                 return jsonify({'error': 'Download failed'}), 500
 
     except Exception as e:
-        error_message = str(e)
+        error_message = str(e).lower()
         
-        if 'private' in error_message.lower() or 'login' in error_message.lower():
-            return jsonify({'error': '🔐 This content is private. Upgrade to premium for protected content downloads.'}), 400
-        elif 'geo' in error_message.lower() or 'location' in error_message.lower():
-            return jsonify({'error': '🌍 Content restricted in your region. Premium users get unrestricted access.'}), 400
-        elif '404' in error_message or 'not found' in error_message.lower():
-            return jsonify({'error': '❌ Content not found. Please check the URL.'}), 404
-        elif 'drm' in error_message.lower() or 'spotify' in error_message.lower() or 'netflix' in error_message.lower():
-            return jsonify({'error': '⭐ Premium Required: Download from Spotify, Netflix & protected platforms with premium subscription.'}), 400
-        elif 'audiomack' in error_message.lower():
-            return jsonify({'error': '🎵 Audiomack download failed. Verify URL format or try premium for better support.'}), 400
+        if 'spotify' in error_message:
+            return jsonify({'error': '🚫 Spotify downloads are not supported due to DRM copyright protection.'}), 400
+        elif 'netflix' in error_message or 'prime video' in error_message or 'disney' in error_message or 'hulu' in error_message:
+            return jsonify({'error': '🚫 Streaming services with DRM encryption (Netflix, Disney+, etc.) cannot be downloaded.'}), 400
+        elif 'audiomack' in error_message:
+            return jsonify({'error': '🎵 Audiomack Error: Please use the correct URL format for the song.'}), 400
+        elif 'private' in error_message or 'login' in error_message:
+            return jsonify({'error': '🔐 This content is private or requires login.'}), 400
+        elif 'geo' in error_message or 'location' in error_message:
+            return jsonify({'error': '🌍 Content restricted in your region.'}), 400
+        elif '404' in error_message or 'not found' in error_message:
+            return jsonify({'error': '❌ Content not found or has been removed.'}), 404
+        elif 'copyright' in error_message or 'removed' in error_message:
+            return jsonify({'error': '⚠️ Content removed due to copyright claims.'}), 400
         
-        return jsonify({'error': f'Download failed. Try a different URL or upgrade to premium for enhanced compatibility.'}), 500
+        return jsonify({'error': f'Download failed. Supported platforms: YouTube, Instagram, TikTok, Facebook, Twitter, Vimeo, SoundCloud, and others. DRM-protected services not supported.'}), 500
 
 @app.route('/download-file/<path:filename>')
 def download_file(filename):

@@ -31,7 +31,16 @@ def get_info():
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
+                'Sec-Fetch-Mode': 'navigate',
             },
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web'],
+                    'skip': ['dash', 'hls']
+                }
+            }
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -86,16 +95,20 @@ def get_info():
     except Exception as e:
         error_message = str(e)
         
-        if 'private' in error_message.lower() or 'login' in error_message.lower():
-            return jsonify({'error': '🔐 This content is private or requires login. Please try public content.'}), 400
+        if 'bot' in error_message.lower() or 'sign in' in error_message.lower():
+            return jsonify({'error': '🤖 YouTube requires verification. Try a different video or upgrade to premium for bot-free downloads.'}), 400
+        elif 'private' in error_message.lower() or 'login' in error_message.lower():
+            return jsonify({'error': '🔐 This content is private or requires login. Upgrade to premium for access to protected content.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
-            return jsonify({'error': '🌍 This content may be restricted in your region.'}), 400
+            return jsonify({'error': '🌍 This content may be restricted in your region. Premium users can access geo-restricted content.'}), 400
         elif '404' in error_message or 'not found' in error_message.lower():
             return jsonify({'error': '❌ Content not found. Please check the URL and try again.'}), 404
-        elif 'drm' in error_message.lower():
-            return jsonify({'error': '⚠️ This content is protected and cannot be downloaded.'}), 400
+        elif 'drm' in error_message.lower() or 'spotify' in error_message.lower() or 'netflix' in error_message.lower():
+            return jsonify({'error': '⭐ Premium Content Detected: This platform requires a premium subscription. Upgrade to download from Spotify, Netflix, and other protected platforms.'}), 400
+        elif 'audiomack' in error_message.lower():
+            return jsonify({'error': '🎵 Audiomack download failed. Please verify the URL is correct (format: https://audiomack.com/username/song/song-title).'}), 400
         
-        return jsonify({'error': f'Unable to process this URL. Please try a different link.'}), 500
+        return jsonify({'error': f'Unable to process this URL. Try a different link or upgrade to premium for better compatibility.'}), 500
 
 @app.route('/download', methods=['POST'])
 def download():
@@ -116,7 +129,19 @@ def download():
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
+                'Sec-Fetch-Mode': 'navigate',
+            },
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web'],
+                    'skip': ['dash', 'hls']
+                }
+            }
         }
 
         if download_type == 'audio':
@@ -163,16 +188,20 @@ def download():
     except Exception as e:
         error_message = str(e)
         
-        if 'private' in error_message.lower() or 'login' in error_message.lower():
-            return jsonify({'error': '🔐 This content is private or requires login.'}), 400
+        if 'bot' in error_message.lower() or 'sign in' in error_message.lower():
+            return jsonify({'error': '🤖 YouTube verification required. Try another video or upgrade to premium.'}), 400
+        elif 'private' in error_message.lower() or 'login' in error_message.lower():
+            return jsonify({'error': '🔐 This content is private. Upgrade to premium for protected content downloads.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
-            return jsonify({'error': '🌍 This content may be restricted in your region.'}), 400
+            return jsonify({'error': '🌍 Content restricted in your region. Premium users get unrestricted access.'}), 400
         elif '404' in error_message or 'not found' in error_message.lower():
             return jsonify({'error': '❌ Content not found. Please check the URL.'}), 404
-        elif 'drm' in error_message.lower():
-            return jsonify({'error': '⚠️ This content is protected and cannot be downloaded.'}), 400
+        elif 'drm' in error_message.lower() or 'spotify' in error_message.lower() or 'netflix' in error_message.lower():
+            return jsonify({'error': '⭐ Premium Required: Download from Spotify, Netflix & protected platforms with premium subscription.'}), 400
+        elif 'audiomack' in error_message.lower():
+            return jsonify({'error': '🎵 Audiomack download failed. Verify URL format or try premium for better support.'}), 400
         
-        return jsonify({'error': f'Download failed. Please try again or use a different URL.'}), 500
+        return jsonify({'error': f'Download failed. Try a different URL or upgrade to premium for enhanced compatibility.'}), 500
 
 @app.route('/download-file/<path:filename>')
 def download_file(filename):

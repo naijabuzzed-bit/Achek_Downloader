@@ -119,30 +119,26 @@ function displayMediaInfo(info) {
         });
     }
     
-    // Best quality button
+    // Best quality button - always show
     const bestVideoBtn = document.createElement('button');
     bestVideoBtn.className = 'format-btn best-quality';
     bestVideoBtn.type = 'button';
-    bestVideoBtn.innerHTML = '<i class="fas fa-crown"></i> Best Quality Available';
+    bestVideoBtn.innerHTML = '<i class="fas fa-crown"></i> Best Quality';
     bestVideoBtn.dataset.formatId = 'best';
     bestVideoBtn.dataset.type = 'video';
     bestVideoBtn.addEventListener('click', () => handleFormatDownload(bestVideoBtn, 'best', 'video'));
     videoFormats.appendChild(bestVideoBtn);
     
-    // Dynamic quality options based on availability
+    // Essential quality options - ONLY show what's available
     const qualityPresets = [
-        { id: 'bestvideo[height<=2160]+bestaudio/best', label: '4K (2160p)', icon: 'gem', key: '4K' },
-        { id: 'bestvideo[height<=1440]+bestaudio/best', label: '2K (1440p)', icon: 'star', key: '2K' },
         { id: 'bestvideo[height<=1080]+bestaudio/best', label: 'Full HD (1080p)', icon: 'video', key: '1080p' },
         { id: 'bestvideo[height<=720]+bestaudio/best', label: 'HD (720p)', icon: 'video', key: '720p' },
-        { id: 'bestvideo[height<=480]+bestaudio/best', label: 'SD (480p)', icon: 'video', key: '480p' },
-        { id: 'bestvideo[height<=360]+bestaudio/best', label: 'Low (360p)', icon: 'mobile-alt', key: '360p' }
+        { id: 'bestvideo[height<=480]+bestaudio/best', label: 'SD (480p)', icon: 'mobile-alt', key: '480p' }
     ];
     
-    // Only show qualities that are actually available or always show top 3
-    qualityPresets.forEach((quality, index) => {
-        // Show all qualities or only available ones based on detection
-        if (availableQualities.size === 0 || availableQualities.has(quality.key) || index < 3) {
+    // Only show qualities that are actually available in the video
+    qualityPresets.forEach((quality) => {
+        if (availableQualities.size === 0 || availableQualities.has(quality.key)) {
             const btn = document.createElement('button');
             btn.className = 'format-btn';
             btn.type = 'button';
@@ -154,43 +150,24 @@ function displayMediaInfo(info) {
         }
     });
     
-    // Add specific formats from backend if available
-    if (info.video_formats && info.video_formats.length > 0) {
-        const uniqueFormats = new Map();
-        info.video_formats.forEach(format => {
-            const key = `${format.quality}_${format.ext}`;
-            if (!uniqueFormats.has(key)) {
-                uniqueFormats.set(key, format);
-            }
-        });
-        
-        uniqueFormats.forEach(format => {
-            const btn = createFormatButton(format, 'video');
-            videoFormats.appendChild(btn);
-        });
-    }
-    
     // Display audio formats - DYNAMIC
     const audioFormats = document.getElementById('audioFormats');
     audioFormats.innerHTML = '';
     
-    // Best audio button
+    // Best audio button - always show
     const bestAudioBtn = document.createElement('button');
     bestAudioBtn.className = 'format-btn best-quality';
     bestAudioBtn.type = 'button';
-    bestAudioBtn.innerHTML = '<i class="fas fa-crown"></i> Best Quality MP3 (320kbps)';
+    bestAudioBtn.innerHTML = '<i class="fas fa-crown"></i> Best Quality MP3';
     bestAudioBtn.dataset.formatId = 'bestaudio';
     bestAudioBtn.dataset.type = 'audio';
     bestAudioBtn.addEventListener('click', () => handleFormatDownload(bestAudioBtn, 'bestaudio', 'audio'));
     audioFormats.appendChild(bestAudioBtn);
     
-    // Dynamic audio quality presets
+    // Essential audio quality options - only necessary ones
     const audioPresets = [
-        { id: 'bestaudio[abr<=320]', label: 'High Quality (320kbps)', icon: 'music' },
-        { id: 'bestaudio[abr<=256]', label: 'Very Good (256kbps)', icon: 'music' },
-        { id: 'bestaudio[abr<=192]', label: 'Good (192kbps)', icon: 'music' },
-        { id: 'bestaudio[abr<=128]', label: 'Standard (128kbps)', icon: 'headphones' },
-        { id: 'bestaudio[abr<=96]', label: 'Low (96kbps)', icon: 'mobile-alt' }
+        { id: 'bestaudio[abr<=192]', label: 'High (192kbps)', icon: 'music' },
+        { id: 'bestaudio[abr<=128]', label: 'Standard (128kbps)', icon: 'headphones' }
     ];
     
     audioPresets.forEach(quality => {
@@ -203,22 +180,6 @@ function displayMediaInfo(info) {
         btn.addEventListener('click', () => handleFormatDownload(btn, quality.id, 'audio'));
         audioFormats.appendChild(btn);
     });
-    
-    // Add specific audio formats from backend if available
-    if (info.audio_formats && info.audio_formats.length > 0) {
-        const uniqueAudioFormats = new Map();
-        info.audio_formats.forEach(format => {
-            const key = `${format.quality}_${format.ext}`;
-            if (!uniqueAudioFormats.has(key)) {
-                uniqueAudioFormats.set(key, format);
-            }
-        });
-        
-        uniqueAudioFormats.forEach(format => {
-            const btn = createFormatButton(format, 'audio');
-            audioFormats.appendChild(btn);
-        });
-    }
     
     showMediaInfo();
 }

@@ -69,8 +69,27 @@ function displayMediaInfo(info) {
         videoFormats.appendChild(btn);
     }
     
-    const audioBtn = document.querySelector('[data-type="audio"]');
-    audioBtn.onclick = () => downloadMedia(null, 'audio');
+    const audioFormats = document.getElementById('audioFormats');
+    audioFormats.innerHTML = '';
+    
+    if (info.audio_formats && info.audio_formats.length > 0) {
+        info.audio_formats.forEach(format => {
+            const btn = document.createElement('button');
+            btn.className = 'format-btn';
+            btn.textContent = `${format.quality} (${format.ext})`;
+            btn.dataset.formatId = format.format_id;
+            btn.dataset.type = 'audio';
+            btn.addEventListener('click', () => downloadMedia(format.format_id, 'audio'));
+            audioFormats.appendChild(btn);
+        });
+    } else {
+        const btn = document.createElement('button');
+        btn.className = 'format-btn';
+        btn.textContent = 'Download as MP3';
+        btn.dataset.type = 'audio';
+        btn.addEventListener('click', () => downloadMedia(null, 'audio'));
+        audioFormats.appendChild(btn);
+    }
     
     showMediaInfo();
 }

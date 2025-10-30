@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
+from werkzeug.utils import secure_filename
 import yt_dlp
 import os
 import time
@@ -102,7 +103,10 @@ def download():
         }
         
         if download_type == 'audio':
-            ydl_opts['format'] = 'bestaudio/best'
+            if format_id:
+                ydl_opts['format'] = format_id
+            else:
+                ydl_opts['format'] = 'bestaudio/best'
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -135,11 +139,17 @@ def download():
 @app.route('/download-file/<filename>')
 def download_file(filename):
     try:
-        file_path = os.path.join(app.config['DOWNLOAD_FOLDER'], filename)
-        if os.path.exists(file_path):
-            return send_file(file_path, as_attachment=True)
-        else:
-            return "File not found", 404
+        safe_filename = secure_filename(filename)
+        if not safe_filename or safe_filename != filename:
+            return "Invalid filename", 400
+        
+        return send_from_directory(
+            app.config['DOWNLOAD_FOLDER'], 
+            safe_filename, 
+            as_attachment=True
+        )
+    except FileNotFoundError:
+        return "File not found", 404
     except Exception as e:
         return str(e), 500
 

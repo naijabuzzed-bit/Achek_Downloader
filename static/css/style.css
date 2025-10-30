@@ -598,8 +598,18 @@ body {
 }
 
 .ad-container {
-    display: none !important;
-    visibility: hidden;
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    background: var(--light-gray);
+    border-radius: 10px;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.ad-container ins {
+    display: block;
+    max-width: 100%;
 }
 
 .download-progress {

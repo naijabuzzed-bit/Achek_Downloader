@@ -572,15 +572,7 @@ function hideDownloadResult() {
     if (resultEl) fadeOut(resultEl);
 }
 
-// Register service worker for ads
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then(function(registration) {
-            console.log('Service Worker registered successfully:', registration.scope);
-        })
-        .catch(function(error) {
-            console.log('Service Worker registration failed:', error);
-        });
-}
+// Service worker disabled to prevent unwanted redirects
+// Google AdSense is used for monetization instead
 
 console.log('Media Downloader by Achek Digital Solutions - Ready!');

@@ -1,7 +1,10 @@
 
-self.options = {
-  "domain": "fpyf8.com",
-  "zoneId": 181667
-}
-self.lary = ""
-importScripts('https://fpyf8.com/act/files/service-worker.min.js?r=sw')
+// Service worker disabled to prevent unwanted redirects
+// Google AdSense will be used instead for monetization
+self.addEventListener('install', function(event) {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function(event) {
+  event.waitUntil(self.clients.claim());
+});

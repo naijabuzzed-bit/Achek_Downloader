@@ -518,6 +518,17 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
+.download-notice {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #D97706;
+    font-weight: 600;
+    background: rgba(245, 158, 11, 0.1);
+    padding: 10px 16px;
+    border-radius: 8px;
+    border-left: 3px solid #F59E0B;
+}
+
 /* Platforms Section */
 .platforms-section {
     background: white;

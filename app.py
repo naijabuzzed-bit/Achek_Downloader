@@ -4,12 +4,38 @@ import yt_dlp
 import os
 import re
 from urllib.parse import urlparse
+import threading
+import time
+from datetime import datetime
 
 app = Flask(__name__)
 
 # Configuration
 DOWNLOAD_FOLDER = os.path.join('static', 'downloads')
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
+# File cleanup configuration
+FILE_RETENTION_SECONDS = 300  # 5 minutes
+
+def cleanup_old_files():
+    """Background task to clean up old downloaded files"""
+    while True:
+        try:
+            current_time = time.time()
+            for filename in os.listdir(DOWNLOAD_FOLDER):
+                filepath = os.path.join(DOWNLOAD_FOLDER, filename)
+                if os.path.isfile(filepath):
+                    file_age = current_time - os.path.getmtime(filepath)
+                    if file_age > FILE_RETENTION_SECONDS:
+                        os.remove(filepath)
+                        print(f"Cleaned up old file: {filename}")
+        except Exception as e:
+            print(f"Error in cleanup task: {e}")
+        time.sleep(60)  # Run every minute
+
+# Start cleanup thread
+cleanup_thread = threading.Thread(target=cleanup_old_files, daemon=True)
+cleanup_thread.start()
 
 @app.route('/')
 def index():
@@ -19,6 +45,21 @@ def index():
 def sitemap():
     """Serve sitemap for SEO"""
     return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
+
+@app.route('/robots.txt')
+def robots():
+    """Serve robots.txt for SEO"""
+    robots_content = """User-agent: *
+Allow: /
+Sitemap: https://downloader.achek.com.ng/sitemap.xml
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+"""
+    return app.response_class(robots_content, mimetype='text/plain')
 
 @app.route('/fetch_info', methods=['POST'])
 def fetch_info():

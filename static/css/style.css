@@ -1,3 +1,4 @@
+
 * {
     margin: 0;
     padding: 0;
@@ -8,7 +9,8 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
-    padding: 20px;
+    padding: 10px;
+    line-height: 1.6;
 }
 
 .container {
@@ -23,47 +25,79 @@ body {
 header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 40px 30px;
+    padding: 30px 20px;
     text-align: center;
 }
 
 header h1 {
-    font-size: 2.5em;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
     margin-bottom: 10px;
 }
 
 .subtitle {
-    font-size: 1.1em;
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
     opacity: 0.9;
+    margin-bottom: 10px;
 }
 
-.ad-banner {
-    background: #f5f5f5;
-    padding: 20px;
-    text-align: center;
+.company-tagline {
+    font-size: clamp(0.8rem, 2.5vw, 1rem);
+    opacity: 0.95;
+    margin-top: 10px;
 }
 
-.ad-placeholder {
-    background: #e0e0e0;
-    padding: 20px;
-    border: 2px dashed #999;
-    border-radius: 8px;
-    color: #666;
+.company-tagline a {
+    color: #fff;
+    text-decoration: underline;
     font-weight: bold;
 }
 
-.ad-top, .ad-bottom {
-    min-height: 110px;
+.company-tagline a:hover {
+    color: #ffd700;
+}
+
+/* Ad Styling - Non-intrusive */
+.ad-banner {
+    background: #f8f9fa;
+    padding: 15px;
+    text-align: center;
+    min-height: 90px;
+    margin: 10px 0;
+}
+
+.ad-placeholder {
+    background: #e9ecef;
+    padding: 20px;
+    border: 2px dashed #adb5bd;
+    border-radius: 8px;
+    color: #6c757d;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.ad-top {
+    margin-top: 0;
+}
+
+.ad-bottom {
+    margin-bottom: 0;
 }
 
 main {
-    padding: 30px;
+    padding: 20px;
 }
 
 .main-content {
     display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 30px;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 992px) {
+    .main-content {
+        grid-template-columns: 1fr 300px;
+        gap: 30px;
+    }
 }
 
 .content-section {
@@ -72,45 +106,19 @@ main {
 
 .download-section {
     background: #f9f9f9;
-    padding: 30px;
+    padding: 25px;
     border-radius: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 .download-section h2 {
     color: #333;
     margin-bottom: 20px;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
 }
 
 .input-group {
     margin-bottom: 15px;
-}
-
-.quality-selector {
-    margin-bottom: 15px;
-}
-
-.quality-selector label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #333;
-}
-
-.quality-selector select {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    font-size: 16px;
-    background: white;
-    cursor: pointer;
-    transition: border-color 0.3s;
-}
-
-.quality-selector select:focus {
-    outline: none;
-    border-color: #667eea;
 }
 
 .btn-download {
@@ -119,24 +127,25 @@ main {
 }
 
 input[type="text"] {
-    flex: 1;
+    width: 100%;
     padding: 15px;
     border: 2px solid #ddd;
     border-radius: 10px;
-    font-size: 16px;
+    font-size: clamp(14px, 3vw, 16px);
     transition: border-color 0.3s;
 }
 
 input[type="text"]:focus {
     outline: none;
     border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .btn {
     padding: 15px 30px;
     border: none;
     border-radius: 10px;
-    font-size: 16px;
+    font-size: clamp(14px, 3vw, 16px);
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
@@ -152,6 +161,10 @@ input[type="text"]:focus {
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
+.btn-primary:active {
+    transform: translateY(0);
+}
+
 .btn-success {
     background: #28a745;
     color: white;
@@ -165,7 +178,7 @@ input[type="text"]:focus {
 
 .loading {
     text-align: center;
-    padding: 40px;
+    padding: 40px 20px;
 }
 
 .spinner {
@@ -190,6 +203,7 @@ input[type="text"]:focus {
     border-radius: 10px;
     margin: 20px 0;
     border: 1px solid #f5c6cb;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
 }
 
 .media-info {
@@ -198,7 +212,8 @@ input[type="text"]:focus {
 
 .media-preview {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    gap: 15px;
     margin-bottom: 30px;
     background: white;
     padding: 20px;
@@ -206,8 +221,16 @@ input[type="text"]:focus {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+@media (min-width: 576px) {
+    .media-preview {
+        flex-direction: row;
+        gap: 20px;
+    }
+}
+
 .media-preview img {
-    width: 200px;
+    width: 100%;
+    max-width: 200px;
     height: auto;
     border-radius: 10px;
 }
@@ -219,11 +242,13 @@ input[type="text"]:focus {
 .media-details h3 {
     color: #333;
     margin-bottom: 10px;
+    font-size: clamp(1rem, 3vw, 1.2rem);
 }
 
 .uploader, .duration {
     color: #666;
     margin: 5px 0;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
 }
 
 .download-options {
@@ -240,11 +265,12 @@ input[type="text"]:focus {
 .option-group h4 {
     color: #667eea;
     margin-bottom: 15px;
+    font-size: clamp(1rem, 3vw, 1.1rem);
 }
 
 .format-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
 }
 
@@ -257,16 +283,22 @@ input[type="text"]:focus {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
 }
 
 .format-btn:hover {
     background: #667eea;
     color: white;
+    transform: translateY(-2px);
+}
+
+.format-btn:active {
+    transform: translateY(0);
 }
 
 .download-progress {
     text-align: center;
-    padding: 40px;
+    padding: 40px 20px;
     background: white;
     border-radius: 10px;
     margin-top: 20px;
@@ -274,7 +306,7 @@ input[type="text"]:focus {
 
 .download-result {
     text-align: center;
-    padding: 40px;
+    padding: 40px 20px;
     background: white;
     border-radius: 10px;
     margin-top: 20px;
@@ -283,34 +315,37 @@ input[type="text"]:focus {
 .success-message h3 {
     color: #28a745;
     margin-bottom: 20px;
+    font-size: clamp(1.1rem, 3vw, 1.3rem);
 }
 
 .supported-platforms {
     background: #f9f9f9;
-    padding: 30px;
+    padding: 25px;
     border-radius: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 .supported-platforms h3 {
     color: #333;
     margin-bottom: 20px;
+    font-size: clamp(1.1rem, 3vw, 1.3rem);
 }
 
 .platform-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 12px;
 }
 
 .platform-item {
     background: white;
-    padding: 15px;
+    padding: 12px;
     border-radius: 10px;
     text-align: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     font-weight: bold;
     color: #667eea;
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
 }
 
 .platform-item.platform-disabled {
@@ -321,42 +356,68 @@ input[type="text"]:focus {
 
 .platform-note {
     margin-top: 15px;
-    font-size: 0.9em;
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
     color: #666;
     font-style: italic;
     text-align: center;
 }
 
-.features {
+.features, .about-section {
     background: #f9f9f9;
-    padding: 30px;
+    padding: 25px;
     border-radius: 15px;
+    margin-bottom: 25px;
 }
 
-.features h3 {
+.features h3, .about-section h3 {
     color: #333;
     margin-bottom: 20px;
+    font-size: clamp(1.1rem, 3vw, 1.3rem);
 }
 
 .features ul {
     list-style: none;
+    padding: 0;
 }
 
 .features li {
     padding: 10px 0;
     color: #555;
-    font-size: 1.05em;
+    font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+}
+
+.about-section p {
+    color: #555;
+    margin-bottom: 15px;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+}
+
+.about-section a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.about-section a:hover {
+    text-decoration: underline;
 }
 
 .sidebar {
-    position: sticky;
-    top: 20px;
-    height: fit-content;
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .sidebar {
+        display: block;
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+    }
 }
 
 .ad-sidebar {
-    background: #f5f5f5;
-    padding: 20px;
+    background: #f8f9fa;
+    padding: 15px;
     border-radius: 10px;
     min-height: 600px;
     display: flex;
@@ -367,41 +428,52 @@ input[type="text"]:focus {
 footer {
     background: #333;
     color: white;
-    padding: 30px;
+    padding: 25px 20px;
     text-align: center;
 }
 
 footer p {
     margin: 10px 0;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+}
+
+footer a {
+    color: #ffd700;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+.footer-links {
+    margin-top: 15px;
+}
+
+.footer-links a {
+    margin: 0 10px;
 }
 
 .disclaimer {
-    font-size: 0.9em;
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
     opacity: 0.8;
 }
 
-@media (max-width: 768px) {
-    .main-content {
-        grid-template-columns: 1fr;
+/* Mobile Optimizations */
+@media (max-width: 576px) {
+    body {
+        padding: 5px;
     }
     
-    .sidebar {
-        display: none;
+    .download-section {
+        padding: 15px;
     }
     
-    .media-preview {
-        flex-direction: column;
+    main {
+        padding: 15px;
     }
     
-    .media-preview img {
-        width: 100%;
-    }
-    
-    .format-list {
-        grid-template-columns: 1fr;
-    }
-    
-    header h1 {
-        font-size: 1.8em;
+    .ad-banner {
+        padding: 10px;
     }
 }

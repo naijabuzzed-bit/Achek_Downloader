@@ -1,13 +1,12 @@
+
 let currentUrl = '';
 let mediaInfo = null;
-let clickedOnce = false;
 
 document.getElementById('downloadForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const urlInput = document.getElementById('urlInput');
     const url = urlInput.value.trim();
-    const quality = document.getElementById('quality').value;
     
     if (!url) {
         showError('Please enter a valid URL');
@@ -15,13 +14,7 @@ document.getElementById('downloadForm').addEventListener('submit', async (e) => 
     }
     
     currentUrl = url;
-    
-    if (!clickedOnce) {
-        await fetchMediaInfo(url);
-        clickedOnce = true;
-    } else {
-        await startDownload(url, quality);
-    }
+    await fetchMediaInfo(url);
 });
 
 async function fetchMediaInfo(url) {
@@ -44,69 +37,13 @@ async function fetchMediaInfo(url) {
         if (response.ok) {
             mediaInfo = data;
             displayMediaInfo(data);
-            document.getElementById('downloadBtn').textContent = 'Download Now';
         } else {
             showError(data.error || 'Failed to fetch media information');
-            clickedOnce = false;
         }
     } catch (error) {
         showError('Network error. Please check your connection and try again.');
-        clickedOnce = false;
     } finally {
         hideLoading();
-    }
-}
-
-async function startDownload(url, quality) {
-    showDownloadProgress();
-    hideError();
-    hideDownloadResult();
-    
-    let formatId = null;
-    let downloadType = 'video';
-    
-    if (quality === 'audio') {
-        downloadType = 'audio';
-    } else if (quality !== 'best' && mediaInfo && mediaInfo.formats) {
-        const selectedFormat = mediaInfo.formats.find(f => {
-            const height = f.quality;
-            return height && height.toString().includes(quality.replace('p', ''));
-        });
-        if (selectedFormat) {
-            formatId = selectedFormat.format_id;
-        }
-    }
-    
-    try {
-        const response = await fetch('/download', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                url: url,
-                format_id: formatId,
-                type: downloadType
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success) {
-            showDownloadResult(data.download_url, data.filename);
-            clickedOnce = false;
-            document.getElementById('downloadBtn').textContent = 'Download';
-        } else {
-            showError(data.error || 'Download failed');
-            clickedOnce = false;
-            document.getElementById('downloadBtn').textContent = 'Download';
-        }
-    } catch (error) {
-        showError('Download failed. Please try again.');
-        clickedOnce = false;
-        document.getElementById('downloadBtn').textContent = 'Download';
-    } finally {
-        hideDownloadProgress();
     }
 }
 
@@ -126,7 +63,8 @@ function displayMediaInfo(info) {
             btn.textContent = `${format.quality} (${format.ext})`;
             btn.dataset.formatId = format.format_id;
             btn.dataset.type = 'video';
-            btn.addEventListener('click', () => downloadWithFormat(format.format_id, 'video'));
+            btn.dataset.clicked = 'false';
+            btn.addEventListener('click', () => handleFormatDownload(btn, format.format_id, 'video'));
             videoFormats.appendChild(btn);
         });
     } else {
@@ -134,7 +72,8 @@ function displayMediaInfo(info) {
         btn.className = 'format-btn';
         btn.textContent = 'Download Best Quality';
         btn.dataset.type = 'video';
-        btn.addEventListener('click', () => downloadWithFormat(null, 'video'));
+        btn.dataset.clicked = 'false';
+        btn.addEventListener('click', () => handleFormatDownload(btn, null, 'video'));
         videoFormats.appendChild(btn);
     }
     
@@ -148,7 +87,8 @@ function displayMediaInfo(info) {
             btn.textContent = `${format.quality} (${format.ext})`;
             btn.dataset.formatId = format.format_id;
             btn.dataset.type = 'audio';
-            btn.addEventListener('click', () => downloadWithFormat(format.format_id, 'audio'));
+            btn.dataset.clicked = 'false';
+            btn.addEventListener('click', () => handleFormatDownload(btn, format.format_id, 'audio'));
             audioFormats.appendChild(btn);
         });
     } else {
@@ -156,11 +96,57 @@ function displayMediaInfo(info) {
         btn.className = 'format-btn';
         btn.textContent = 'Download as MP3';
         btn.dataset.type = 'audio';
-        btn.addEventListener('click', () => downloadWithFormat(null, 'audio'));
+        btn.dataset.clicked = 'false';
+        btn.addEventListener('click', () => handleFormatDownload(btn, null, 'audio'));
         audioFormats.appendChild(btn);
     }
     
     showMediaInfo();
+}
+
+async function handleFormatDownload(button, formatId, type) {
+    // Check if this button was already clicked once
+    if (button.dataset.clicked === 'false') {
+        button.dataset.clicked = 'true';
+        button.textContent = 'Click again to download';
+        button.style.background = '#ffc107';
+        button.style.color = '#000';
+        button.style.borderColor = '#ffc107';
+        return;
+    }
+    
+    // Second click - proceed with download
+    await downloadWithFormat(formatId, type);
+    
+    // Reset all buttons
+    resetAllFormatButtons();
+}
+
+function resetAllFormatButtons() {
+    const allButtons = document.querySelectorAll('.format-btn');
+    allButtons.forEach(btn => {
+        btn.dataset.clicked = 'false';
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        
+        // Restore original text
+        const formatId = btn.dataset.formatId;
+        const type = btn.dataset.type;
+        
+        if (formatId) {
+            // Find original format text
+            if (mediaInfo) {
+                const formats = type === 'audio' ? mediaInfo.audio_formats : mediaInfo.formats;
+                const format = formats?.find(f => f.format_id === formatId);
+                if (format) {
+                    btn.textContent = `${format.quality} (${format.ext})`;
+                }
+            }
+        } else {
+            btn.textContent = type === 'audio' ? 'Download as MP3' : 'Download Best Quality';
+        }
+    });
 }
 
 async function downloadWithFormat(formatId, type) {
@@ -220,6 +206,9 @@ function showError(message) {
     const errorEl = document.getElementById('errorMessage');
     errorEl.textContent = message;
     errorEl.style.display = 'block';
+    
+    // Scroll to error
+    errorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function hideError() {
@@ -247,6 +236,9 @@ function showDownloadResult(downloadUrl, filename) {
     downloadLink.href = downloadUrl;
     downloadLink.download = filename;
     document.getElementById('downloadResult').style.display = 'block';
+    
+    // Scroll to result
+    document.getElementById('downloadResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function hideDownloadResult() {

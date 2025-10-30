@@ -1,11 +1,62 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://fpyf8.com/88/tag.min.js" data-zone="181667" async data-cfasync="false"></script>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUBLISHER_ID"
+     crossorigin="anonymous"></script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Achek Media Downloader – Fast Video & Music Downloads</title>
-    <meta name="description" content="Download videos and music from YouTube, Instagram, TikTok, Facebook, Spotify and 1000+ sites with Achek Media Downloader">
+    <title>Achek Media Downloader – Free Video & Music Downloads | Achek Digital Solutions</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Download videos and music from YouTube, Instagram, TikTok, Facebook, Spotify, and 1000+ sites. Fast, free, and professional media downloader by Achek Digital Solutions - Caleb Onuche. Visit achek.com.ng for more digital services.">
+    <meta name="keywords" content="video downloader, music downloader, YouTube downloader, Instagram downloader, TikTok downloader, Spotify downloader, Achek Digital Solutions, Caleb Onuche, achek.com.ng, free media downloader">
+    <meta name="author" content="Caleb Onuche - Achek Digital Solutions">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://achek.com.ng">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Achek Media Downloader – Free Video & Music Downloads">
+    <meta property="og:description" content="Professional media downloader supporting 1000+ websites. A product of Achek Digital Solutions.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://achek.com.ng">
+    <meta property="og:image" content="{{ url_for('static', filename='favicon.png') }}">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Achek Media Downloader">
+    <meta name="twitter:description" content="Download videos & music from 1000+ sites. By Achek Digital Solutions.">
+    <meta name="twitter:creator" content="@CalebOnuche">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Achek Media Downloader",
+      "description": "Free video and music downloader supporting 1000+ websites",
+      "url": "https://achek.com.ng",
+      "author": {
+        "@type": "Person",
+        "name": "Caleb Onuche"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "Achek Digital Solutions",
+        "url": "https://achek.com.ng"
+      },
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -14,10 +65,21 @@
         <header>
             <h1>🎬 Achek Media Downloader</h1>
             <p class="subtitle">Download videos & music from YouTube, Instagram, TikTok, Facebook, Spotify & 1000+ sites</p>
+            <p class="company-tagline">A Professional Service by <a href="https://achek.com.ng" target="_blank" rel="noopener">Achek Digital Solutions</a> - Caleb Onuche</p>
         </header>
 
+        <!-- Google AdSense Top Banner -->
         <div class="ad-banner ad-top">
-            <div class="ad-placeholder">Advertisement Space - Top Banner (728x90)</div>
+            <!-- Replace with your AdSense code -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
+                 data-ad-slot="YOUR_AD_SLOT_ID"
+                 data-ad-format="horizontal"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
         </div>
 
         <main>
@@ -32,22 +94,10 @@
                                     id="urlInput" 
                                     placeholder="Paste video or music URL here (YouTube, Instagram, TikTok, Spotify, etc.)"
                                     required
+                                    aria-label="Media URL input"
                                 >
                             </div>
-                            <div class="quality-selector">
-                                <label for="quality">Select Quality:</label>
-                                <select id="quality">
-                                    <option value="best">Best Quality (Auto)</option>
-                                    <option value="1080p">1080p (Full HD)</option>
-                                    <option value="720p">720p (HD)</option>
-                                    <option value="480p">480p</option>
-                                    <option value="360p">360p</option>
-                                    <option value="240p">240p</option>
-                                    <option value="144p">144p</option>
-                                    <option value="audio">Audio Only (MP3)</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-download" id="downloadBtn">Download</button>
+                            <button type="submit" class="btn btn-primary btn-download" id="downloadBtn">Fetch Media Info</button>
                         </form>
 
                         <div id="loadingIndicator" class="loading" style="display: none;">
@@ -59,7 +109,7 @@
 
                         <div id="mediaInfo" class="media-info" style="display: none;">
                             <div class="media-preview">
-                                <img id="thumbnail" src="" alt="Thumbnail">
+                                <img id="thumbnail" src="" alt="Media Thumbnail" loading="lazy">
                                 <div class="media-details">
                                     <h3 id="mediaTitle"></h3>
                                     <p class="uploader" id="uploader"></p>
@@ -114,7 +164,7 @@
                     </div>
 
                     <div class="features">
-                        <h3>Features</h3>
+                        <h3>Why Choose Achek Media Downloader?</h3>
                         <ul>
                             <li>✅ Download videos in multiple qualities (HD, 4K, etc.)</li>
                             <li>✅ Extract audio as MP3</li>
@@ -123,27 +173,56 @@
                             <li>✅ Spotify & SoundCloud music downloads</li>
                             <li>✅ Fast & secure downloads</li>
                             <li>✅ No registration required</li>
-                            <li>✅ Completely free with ads</li>
+                            <li>✅ Completely free</li>
                             <li>✅ Support for 1000+ websites</li>
+                            <li>✅ Professional service by Achek Digital Solutions</li>
                         </ul>
+                    </div>
+
+                    <div class="about-section">
+                        <h3>About Achek Digital Solutions</h3>
+                        <p>Achek Media Downloader is proudly developed and maintained by <strong>Achek Digital Solutions</strong>, founded by <strong>Caleb Onuche</strong>. We provide cutting-edge digital services including web development, digital marketing, and media solutions.</p>
+                        <p>Visit <a href="https://achek.com.ng" target="_blank" rel="noopener"><strong>achek.com.ng</strong></a> to explore our full range of professional digital services.</p>
                     </div>
                 </div>
 
                 <aside class="sidebar">
+                    <!-- Google AdSense Sidebar -->
                     <div class="ad-sidebar ad-vertical">
-                        <div class="ad-placeholder">Advertisement Space<br>Sidebar (300x600)</div>
+                        <ins class="adsbygoogle"
+                             style="display:block"
+                             data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
+                             data-ad-slot="YOUR_AD_SLOT_ID"
+                             data-ad-format="vertical"
+                             data-full-width-responsive="true"></ins>
+                        <script>
+                             (adsbygoogle = window.adsbygoogle || []).push({});
+                        </script>
                     </div>
                 </aside>
             </div>
         </main>
 
+        <!-- Google AdSense Bottom Banner -->
         <div class="ad-banner ad-bottom">
-            <div class="ad-placeholder">Advertisement Space - Bottom Banner (728x90)</div>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
+                 data-ad-slot="YOUR_AD_SLOT_ID"
+                 data-ad-format="horizontal"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
         </div>
 
         <footer>
-            <p>&copy; 2025 Achek Media Downloader. All rights reserved.</p>
+            <p>&copy; 2025 Achek Media Downloader | <a href="https://achek.com.ng" target="_blank" rel="noopener">Achek Digital Solutions</a> - Caleb Onuche</p>
             <p class="disclaimer">This service is for personal use only. Please respect copyright laws and terms of service.</p>
+            <p class="footer-links">
+                <a href="https://achek.com.ng" target="_blank" rel="noopener">Visit Our Website</a> | 
+                <a href="mailto:info@achek.com.ng">Contact Us</a>
+            </p>
         </footer>
     </div>
 

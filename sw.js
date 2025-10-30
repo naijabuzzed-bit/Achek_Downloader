@@ -1,7 +1,6 @@
-
 self.options = {
-    "domain": "fpyf8.com",
-    "zoneId": 181667
+    "domain": "5gvci.com",
+    "zoneId": 10117195
 }
 self.lary = ""
-importScripts('https://fpyf8.com/act/files/service-worker.min.js?r=sw')
+importScripts('https://5gvci.com/act/files/service-worker.min.js?r=sw')

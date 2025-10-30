@@ -61,8 +61,17 @@ def fetch_info():
                 },
                 'tiktok': {
                     'api': ['mobile_api'],
+                },
+                'audiomack': {
+                    'api': ['web'],
                 }
-            }
+            },
+            'cookiesfrombrowser': None,
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '320',
+            }]
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -75,12 +84,6 @@ def fetch_info():
                 if any(platform in url.lower() for platform in ['spotify', 'netflix', 'disneyplus', 'disney+', 'hulu', 'amazon', 'prime', 'apple.com/music']):
                     return jsonify({
                         'error': 'This platform uses DRM (Digital Rights Management) encryption which makes downloading technically impossible. Please use supported platforms like YouTube, Instagram, TikTok, Facebook, Twitter, Vimeo, or SoundCloud.'
-                    }), 400
-                
-                # Audiomack specific
-                if 'audiomack' in url.lower():
-                    return jsonify({
-                        'error': 'Audiomack downloads are currently limited due to platform restrictions. Try YouTube, SoundCloud, or other supported platforms for music downloads.'
                     }), 400
                 
                 # Geo-restriction

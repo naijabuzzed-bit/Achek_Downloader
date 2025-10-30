@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Media Downloader - YouTube, Instagram, TikTok, Spotify & More</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Media Downloader</h1>
+            <p class="subtitle">Download videos & music from YouTube, Instagram, TikTok, Facebook, Spotify, Audiomack & 1000+ sites</p>
+        </header>
+
+        <div class="ad-banner ad-top">
+            <div class="ad-placeholder">Advertisement Space - Top Banner (728x90)</div>
+        </div>
+
+        <main>
+            <div class="main-content">
+                <div class="content-section">
+                    <div class="download-section">
+                        <h2>Enter URL to Download</h2>
+                        <form id="downloadForm">
+                            <div class="input-group">
+                                <input 
+                                    type="text" 
+                                    id="urlInput" 
+                                    placeholder="Paste video or music URL here (YouTube, Instagram, TikTok, Spotify, etc.)"
+                                    required
+                                >
+                                <button type="submit" class="btn btn-primary">Get Info</button>
+                            </div>
+                        </form>
+
+                        <div id="loadingIndicator" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Fetching media information...</p>
+                        </div>
+
+                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                        <div id="mediaInfo" class="media-info" style="display: none;">
+                            <div class="media-preview">
+                                <img id="thumbnail" src="" alt="Thumbnail">
+                                <div class="media-details">
+                                    <h3 id="mediaTitle"></h3>
+                                    <p class="uploader" id="uploader"></p>
+                                    <p class="duration" id="duration"></p>
+                                </div>
+                            </div>
+
+                            <div class="download-options">
+                                <h3>Download Options</h3>
+                                
+                                <div class="option-group">
+                                    <h4>Video Quality</h4>
+                                    <div id="videoFormats" class="format-list"></div>
+                                </div>
+
+                                <div class="option-group">
+                                    <h4>Audio Only (MP3)</h4>
+                                    <div id="audioFormats" class="format-list">
+                                        <button class="format-btn" data-type="audio">Download as MP3</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="downloadProgress" class="download-progress" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Downloading... Please wait</p>
+                        </div>
+
+                        <div id="downloadResult" class="download-result" style="display: none;">
+                            <div class="success-message">
+                                <h3>✅ Download Ready!</h3>
+                                <a id="downloadLink" href="#" class="btn btn-success" download>Click to Download</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="supported-platforms">
+                        <h3>Supported Platforms</h3>
+                        <div class="platform-grid">
+                            <div class="platform-item">📹 YouTube</div>
+                            <div class="platform-item">📸 Instagram</div>
+                            <div class="platform-item">🎵 TikTok</div>
+                            <div class="platform-item">👥 Facebook</div>
+                            <div class="platform-item">🎧 Spotify</div>
+                            <div class="platform-item">🎶 Audiomack</div>
+                            <div class="platform-item">📱 Twitter/X</div>
+                            <div class="platform-item">🎬 Vimeo</div>
+                            <div class="platform-item">📺 Dailymotion</div>
+                            <div class="platform-item">➕ 1000+ More</div>
+                        </div>
+                    </div>
+
+                    <div class="features">
+                        <h3>Features</h3>
+                        <ul>
+                            <li>✅ Download videos in multiple qualities (HD, 4K, etc.)</li>
+                            <li>✅ Extract audio as MP3</li>
+                            <li>✅ Download Instagram stories & profile pictures</li>
+                            <li>✅ TikTok videos without watermark</li>
+                            <li>✅ Spotify & Audiomack music downloads</li>
+                            <li>✅ Fast & secure downloads</li>
+                            <li>✅ No registration required</li>
+                            <li>✅ Completely free with ads</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <aside class="sidebar">
+                    <div class="ad-sidebar ad-vertical">
+                        <div class="ad-placeholder">Advertisement Space<br>Sidebar (300x600)</div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+
+        <div class="ad-banner ad-bottom">
+            <div class="ad-placeholder">Advertisement Space - Bottom Banner (728x90)</div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Media Downloader. All rights reserved.</p>
+            <p class="disclaimer">This service is for personal use only. Please respect copyright laws and terms of service.</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

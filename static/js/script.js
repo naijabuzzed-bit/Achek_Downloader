@@ -199,6 +199,9 @@ function createDefaultButton(type) {
 
 // Handle format download - immediate download
 async function handleFormatDownload(button, formatId, type) {
+    // Trigger ad only on download button click
+    triggerAdOnDownload();
+    
     // Disable button and show loading
     button.style.pointerEvents = 'none';
     const originalText = button.textContent;
@@ -349,10 +352,7 @@ function showError(message) {
     
     errorEl.textContent = '⚠️ ' + message;
     fadeIn(errorEl);
-    
-    setTimeout(() => {
-        errorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
+    // Removed auto-scroll to prevent unwanted page jumps
 }
 
 function hideError() {
@@ -365,10 +365,7 @@ function showMediaInfo() {
     if (!mediaInfoEl) return;
     
     fadeIn(mediaInfoEl);
-    
-    setTimeout(() => {
-        mediaInfoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 200);
+    // Removed auto-scroll to prevent unwanted page jumps
 }
 
 function hideMediaInfo() {
@@ -396,10 +393,7 @@ function showDownloadResult(downloadUrl) {
     if (!resultEl) return;
     
     fadeIn(resultEl);
-    
-    setTimeout(() => {
-        resultEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 200);
+    // Removed auto-scroll to prevent unwanted page jumps
 }
 
 function hideDownloadResult() {
@@ -407,11 +401,12 @@ function hideDownloadResult() {
     if (resultEl) fadeOut(resultEl);
 }
 
-// Smooth scroll to top when new search is made
-document.getElementById('urlInput').addEventListener('focus', () => {
-    if (window.scrollY > 200) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+// Trigger ad only on download button clicks
+function triggerAdOnDownload() {
+    // Only trigger ad popup when user actually clicks download
+    if (typeof window.monetag !== 'undefined') {
+        window.monetag.trigger();
     }
-});
+}
 
 console.log('Media Downloader by Achek Digital Solutions - Ready!');

@@ -1,24 +1,18 @@
-
 from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 import yt_dlp
 import os
-import re
-from urllib.parse import urlparse
-import threading
 import time
-from datetime import datetime
+from threading import Thread
 
 app = Flask(__name__)
 
 # Configuration
-DOWNLOAD_FOLDER = os.path.join('static', 'downloads')
+DOWNLOAD_FOLDER = 'static/downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-# File cleanup configuration
-FILE_RETENTION_SECONDS = 300  # 5 minutes
-
+# File cleanup function
 def cleanup_old_files():
-    """Background task to clean up old downloaded files"""
+    """Remove files older than 5 minutes"""
     while True:
         try:
             current_time = time.time()
@@ -26,232 +20,167 @@ def cleanup_old_files():
                 filepath = os.path.join(DOWNLOAD_FOLDER, filename)
                 if os.path.isfile(filepath):
                     file_age = current_time - os.path.getmtime(filepath)
-                    if file_age > FILE_RETENTION_SECONDS:
+                    if file_age > 300:  # 5 minutes
                         os.remove(filepath)
                         print(f"Cleaned up old file: {filename}")
         except Exception as e:
-            print(f"Error in cleanup task: {e}")
-        time.sleep(60)  # Run every minute
+            print(f"Cleanup error: {e}")
+        time.sleep(60)  # Check every minute
 
 # Start cleanup thread
-cleanup_thread = threading.Thread(target=cleanup_old_files, daemon=True)
+cleanup_thread = Thread(target=cleanup_old_files, daemon=True)
 cleanup_thread.start()
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/sitemap.xml')
-def sitemap():
-    """Serve sitemap for SEO"""
-    return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
-
-@app.route('/robots.txt')
-def robots():
-    """Serve robots.txt for SEO"""
-    robots_content = """User-agent: *
-Allow: /
-Sitemap: https://downloader.achek.com.ng/sitemap.xml
-
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-"""
-    return app.response_class(robots_content, mimetype='text/plain')
+@app.route('/sw.js')
+def service_worker():
+    """Serve the Monetag service worker file"""
+    return send_file('sw.js', mimetype='application/javascript')
 
 @app.route('/fetch_info', methods=['POST'])
 def fetch_info():
     try:
-        data = request.json
+        data = request.get_json()
         url = data.get('url')
-        
+
         if not url:
             return jsonify({'error': 'URL is required'}), 400
 
-        # Enhanced yt-dlp options for maximum compatibility
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
             'extract_flat': False,
-            'force_generic_extractor': False,
-            'nocheckcertificate': True,
-            'geo_bypass': True,
             'socket_timeout': 30,
             'retries': 3,
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-us,en;q=0.5',
-                'Accept-Encoding': 'gzip, deflate',
-                'Connection': 'keep-alive',
-            },
-            'extractor_args': {
-                'youtube': {
-                    'skip': ['dash', 'hls'],
-                    'player_client': ['android', 'web'],
-                },
-                'instagram': {
-                    'api': ['graphql'],
-                },
-                'tiktok': {
-                    'api': ['mobile_api'],
-                },
-                'audiomack': {
-                    'api': ['web'],
-                }
-            },
-            'cookiesfrombrowser': None,
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '320',
-            }]
+            'geo_bypass': True,
+            'geo_bypass_country': 'US',
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            try:
-                info = ydl.extract_info(url, download=False)
-            except yt_dlp.utils.DownloadError as e:
-                error_msg = str(e).lower()
-                
-                # DRM-protected platforms
-                if any(platform in url.lower() for platform in ['spotify', 'netflix', 'disneyplus', 'disney+', 'hulu', 'amazon', 'prime', 'apple.com/music']):
-                    return jsonify({
-                        'error': 'This platform uses DRM (Digital Rights Management) encryption which makes downloading technically impossible. Please use supported platforms like YouTube, Instagram, TikTok, Facebook, Twitter, Vimeo, or SoundCloud.'
-                    }), 400
-                
-                # Geo-restriction
-                if 'geo' in error_msg or 'not available' in error_msg or 'region' in error_msg:
-                    return jsonify({
-                        'error': 'This content is geo-restricted and not available in your region. Try using a VPN or choose content available in your location.'
-                    }), 400
-                
-                # Private/Login required
-                if 'login' in error_msg or 'private' in error_msg or 'sign in' in error_msg:
-                    return jsonify({
-                        'error': 'This content is private or requires login. We can only download public content.'
-                    }), 400
-                
-                # Generic error
-                return jsonify({
-                    'error': f'Unable to fetch media info. This could be due to: private content, geo-restrictions, platform limitations, or an invalid URL. Error: {str(e)}'
-                }), 400
+            info = ydl.extract_info(url, download=False)
 
-        # Extract media information
-        formats = info.get('formats', [])
-        
-        video_formats = []
-        audio_formats = []
-        
-        for f in formats:
-            if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
-                quality = f.get('format_note', f.get('height', 'Unknown'))
-                ext = f.get('ext', 'mp4')
-                filesize = f.get('filesize') or f.get('filesize_approx', 0)
-                
-                video_formats.append({
-                    'format_id': f['format_id'],
-                    'quality': f"{quality}p" if isinstance(quality, int) else quality,
-                    'ext': ext,
-                    'filesize': round(filesize / (1024*1024), 2) if filesize else 'Unknown'
-                })
-            
-            elif f.get('acodec') != 'none' and f.get('vcodec') == 'none':
-                abr = f.get('abr', f.get('tbr', 'Unknown'))
-                ext = f.get('ext', 'mp3')
-                filesize = f.get('filesize') or f.get('filesize_approx', 0)
-                
-                audio_formats.append({
-                    'format_id': f['format_id'],
-                    'quality': f"{int(abr)}kbps" if isinstance(abr, (int, float)) else str(abr),
-                    'ext': ext,
-                    'filesize': round(filesize / (1024*1024), 2) if filesize else 'Unknown'
-                })
+            if info is None:
+                return jsonify({'error': 'Could not extract media information'}), 400
 
-        video_formats = sorted(video_formats, key=lambda x: int(re.search(r'\d+', x['quality']).group()) if re.search(r'\d+', x['quality']) else 0, reverse=True)
-        audio_formats = sorted(audio_formats, key=lambda x: int(re.search(r'\d+', x['quality']).group()) if re.search(r'\d+', x['quality']) else 0, reverse=True)
+            # Get video formats
+            video_formats = []
+            audio_formats = []
 
-        return jsonify({
-            'title': info.get('title', 'Unknown Title'),
-            'thumbnail': info.get('thumbnail', ''),
-            'uploader': info.get('uploader', 'Unknown'),
-            'duration': info.get('duration_string', 'Unknown'),
-            'video_formats': video_formats[:15],  # Show up to 15 video options
-            'audio_formats': audio_formats[:8]    # Show up to 8 audio options
-        })
+            if 'formats' in info and info['formats']:
+                for f in info['formats']:
+                    if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
+                        quality = f.get('format_note', f.get('quality', 'Unknown'))
+                        height = f.get('height', 0)
+                        ext = f.get('ext', 'mp4')
+                        filesize = f.get('filesize', 0)
+                        filesize_mb = round(filesize / (1024 * 1024), 2) if filesize else 'Unknown'
 
+                        video_formats.append({
+                            'format_id': f.get('format_id'),
+                            'quality': f"{height}p" if height else quality,
+                            'ext': ext,
+                            'filesize': filesize_mb
+                        })
+
+                    elif f.get('acodec') != 'none' and f.get('vcodec') == 'none':
+                        abr = f.get('abr', 0)
+                        ext = f.get('ext', 'mp3')
+                        filesize = f.get('filesize', 0)
+                        filesize_mb = round(filesize / (1024 * 1024), 2) if filesize else 'Unknown'
+
+                        audio_formats.append({
+                            'format_id': f.get('format_id'),
+                            'quality': f"{int(abr)}kbps" if abr else 'Audio',
+                            'ext': ext,
+                            'filesize': filesize_mb
+                        })
+
+                video_formats = sorted(video_formats, key=lambda x: int(x['quality'].replace('p', '')) if x['quality'].replace('p', '').isdigit() else 0, reverse=True)
+                audio_formats = sorted(audio_formats, key=lambda x: int(x['quality'].replace('kbps', '')) if 'kbps' in x['quality'] else 0, reverse=True)
+
+            return jsonify({
+                'success': True,
+                'title': info.get('title', 'Unknown Title'),
+                'thumbnail': info.get('thumbnail', ''),
+                'uploader': info.get('uploader', 'Unknown'),
+                'duration': info.get('duration_string', 'Unknown'),
+                'video_formats': video_formats[:15],
+                'audio_formats': audio_formats[:8]
+            })
+
+    except yt_dlp.utils.DownloadError as e:
+        error_msg = str(e)
+        if 'DRM' in error_msg or 'protected' in error_msg.lower():
+            return jsonify({'error': 'This content is DRM-protected and cannot be downloaded. Try YouTube, Instagram, or TikTok instead.'}), 400
+        elif 'geo' in error_msg.lower() or 'not available' in error_msg.lower():
+            return jsonify({'error': 'This content is not available in your region or is geo-restricted.'}), 400
+        elif 'private' in error_msg.lower():
+            return jsonify({'error': 'This content is private and cannot be accessed.'}), 400
+        else:
+            return jsonify({'error': f'Download error: {error_msg}'}), 400
     except Exception as e:
-        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 @app.route('/download', methods=['POST'])
 def download():
     try:
-        data = request.json
+        data = request.get_json()
         url = data.get('url')
         format_id = data.get('format_id')
         download_type = data.get('type', 'video')
-        
-        if not url or not format_id:
-            return jsonify({'error': 'URL and format_id are required'}), 400
 
-        # Handle best quality selectors
-        if format_id == 'best':
-            format_selector = 'bestvideo+bestaudio/best'
-        elif format_id == 'bestaudio':
-            format_selector = 'bestaudio/best'
-        else:
-            format_selector = format_id
+        if not url:
+            return jsonify({'error': 'URL is required'}), 400
 
-        filename = f"download_{format_id}_{int(time.time())}.%(ext)s"
-        filepath = os.path.join(DOWNLOAD_FOLDER, filename)
+        timestamp = int(time.time())
 
-        ydl_opts = {
-            'format': format_selector,
-            'outtmpl': filepath,
-            'quiet': True,
-            'no_warnings': True,
-            'nocheckcertificate': True,
-            'geo_bypass': True,
-            'socket_timeout': 30,
-            'retries': 3,
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        if download_type == 'audio':
+            output_template = os.path.join(DOWNLOAD_FOLDER, f'audio_{timestamp}.%(ext)s')
+            ydl_opts = {
+                'format': format_id if format_id else 'bestaudio/best',
+                'outtmpl': output_template,
+                'quiet': True,
+                'no_warnings': True,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '320',
+                }],
+                'socket_timeout': 30,
+                'retries': 3,
             }
-        }
-        
-        # Add audio extraction for audio downloads
-        if download_type == 'audio' or format_id == 'bestaudio':
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '320',
-            }]
+        else:
+            output_template = os.path.join(DOWNLOAD_FOLDER, f'video_{timestamp}.%(ext)s')
+            ydl_opts = {
+                'format': format_id if format_id else 'best',
+                'outtmpl': output_template,
+                'quiet': True,
+                'no_warnings': True,
+                'socket_timeout': 30,
+                'retries': 3,
+            }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
-        downloaded_file = None
-        for file in os.listdir(DOWNLOAD_FOLDER):
-            if file.startswith(f"download_{format_id}"):
-                downloaded_file = file
-                break
+        downloaded_files = [f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(f'{download_type}_{timestamp}')]
 
-        if downloaded_file:
-            return jsonify({
-                'success': True,
-                'download_url': f'/static/downloads/{downloaded_file}'
-            })
-        else:
-            return jsonify({'error': 'Download failed'}), 500
+        if not downloaded_files:
+            return jsonify({'error': 'Download failed - no file was created'}), 500
+
+        download_filename = downloaded_files[0]
+        download_url = f'/static/downloads/{download_filename}'
+
+        return jsonify({
+            'success': True,
+            'download_url': download_url
+        })
 
     except Exception as e:
         return jsonify({'error': f'Download failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    # For cPanel deployment, it will use its own port management
-    # For Replit, use 0.0.0.0:5000
-    import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=False)

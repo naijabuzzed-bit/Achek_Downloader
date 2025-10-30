@@ -125,10 +125,20 @@ def download():
                 filename = filename.rsplit('.', 1)[0] + '.mp3'
             
             if os.path.exists(filename):
+                original_basename = os.path.basename(filename)
+                safe_basename = secure_filename(original_basename)
+                
+                if safe_basename != original_basename:
+                    safe_path = os.path.join(app.config['DOWNLOAD_FOLDER'], safe_basename)
+                    os.rename(filename, safe_path)
+                    final_filename = safe_basename
+                else:
+                    final_filename = original_basename
+                
                 return jsonify({
                     'success': True,
-                    'filename': os.path.basename(filename),
-                    'download_url': f'/download-file/{os.path.basename(filename)}'
+                    'filename': final_filename,
+                    'download_url': f'/download-file/{final_filename}'
                 })
             else:
                 return jsonify({'error': 'Download failed'}), 500
@@ -136,12 +146,19 @@ def download():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/download-file/<filename>')
+@app.route('/download-file/<path:filename>')
 def download_file(filename):
     try:
         safe_filename = secure_filename(filename)
-        if not safe_filename or safe_filename != filename:
+        if not safe_filename:
             return "Invalid filename", 400
+        
+        file_path = os.path.join(app.config['DOWNLOAD_FOLDER'], safe_filename)
+        if not os.path.exists(file_path):
+            return "File not found", 404
+        
+        if not os.path.abspath(file_path).startswith(os.path.abspath(app.config['DOWNLOAD_FOLDER'])):
+            return "Invalid file path", 400
         
         return send_from_directory(
             app.config['DOWNLOAD_FOLDER'], 

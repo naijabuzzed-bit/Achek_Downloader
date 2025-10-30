@@ -4,6 +4,24 @@
 A Python Flask-based web application that allows users to download videos and music from multiple platforms including YouTube, Facebook, Instagram, TikTok, Spotify, and more. The site features Monetag ad integration for monetization with a two-click download system.
 
 ## Recent Changes
+- **2025-10-30**: Platform Compatibility Enhancement & Expectation Management
+  - Enhanced yt-dlp configuration for maximum compatibility:
+    - Added Instagram and TikTok specific extractor arguments
+    - Improved HTTP headers with compression support
+    - Added socket timeout and retry settings for reliability
+    - Better geo-bypass configuration
+  - Improved error handling with specific messages:
+    - Clear DRM-protection warnings for Spotify, Netflix, Disney+, etc.
+    - Honest messaging about technical limitations
+    - Helpful suggestions for alternative platforms
+    - Better Audiomack, geo-restriction, and private content errors
+  - Updated UI to set proper expectations:
+    - Clear "✅ Supported Platforms (Working)" section
+    - Prominent DRM warning for protected platforms
+    - Removed false claims about premium downloads
+    - Updated to offer legitimate custom development services
+  - Focus on platforms that actually work: YouTube, Instagram, TikTok, Facebook, Twitter, Vimeo, SoundCloud, Reddit, Twitch, etc.
+
 - **2025-10-30**: Major UI/UX Redesign & Download Fixes
   - Fixed YouTube and audio download functionality with proper format selection
   - Improved audio quality to 320kbps MP3 with FFmpeg extraction

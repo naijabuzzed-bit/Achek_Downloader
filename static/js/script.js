@@ -259,11 +259,44 @@ function createDefaultButton(type) {
     return btn;
 }
 
-// Handle format download - immediate download
+// Handle format download with Monetag ad (two-click system)
 async function handleFormatDownload(button, formatId, type) {
-    // Disable button and show loading
+    const adTriggered = button.dataset.adTriggered === 'true';
+    
+    if (!adTriggered) {
+        // FIRST CLICK: Show Monetag ad redirect
+        button.dataset.adTriggered = 'true';
+        
+        // Update button to show next step
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span>✅</span> Click Again to Download';
+        button.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+        button.style.color = 'white';
+        button.style.animation = 'pulse 1.5s infinite';
+        
+        // Open Monetag ad in new tab
+        const adUrl = 'https://fpyf8.com/88/tag.min.js?zone=181667';
+        window.open(adUrl, '_blank', 'noopener,noreferrer');
+        
+        // Reset button after 10 seconds if not clicked
+        setTimeout(() => {
+            if (button.dataset.adTriggered === 'true') {
+                button.innerHTML = originalText;
+                button.style.background = '';
+                button.style.color = '';
+                button.style.animation = '';
+                button.dataset.adTriggered = 'false';
+            }
+        }, 10000);
+        
+        return;
+    }
+    
+    // SECOND CLICK: Start actual download
+    button.dataset.adTriggered = 'false'; // Reset for next time
     button.disabled = true;
     button.style.pointerEvents = 'none';
+    button.style.animation = '';
     const originalText = button.innerHTML;
     button.innerHTML = '<span>⏳</span> Downloading...';
     button.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
@@ -275,7 +308,6 @@ async function handleFormatDownload(button, formatId, type) {
         button.innerHTML = originalText;
         button.style.background = '';
         button.style.color = '';
-        button.dataset.adTriggered = 'false';
     } finally {
         button.disabled = false;
         button.style.pointerEvents = '';

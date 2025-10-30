@@ -597,6 +597,17 @@ body {
     pointer-events: none;
 }
 
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.6);
+    }
+}
+
 .ad-container {
     text-align: center;
     margin: 20px 0;

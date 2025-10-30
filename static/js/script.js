@@ -92,7 +92,7 @@ async function fetchMediaInfo(url) {
     }
 }
 
-// Display media information
+// Display media information - Dynamic & Professional
 function displayMediaInfo(info) {
     // Set media details
     document.getElementById('thumbnail').src = info.thumbnail;
@@ -101,72 +101,99 @@ function displayMediaInfo(info) {
     document.getElementById('uploader').textContent = 'Uploader: ' + info.uploader;
     document.getElementById('duration').textContent = 'Duration: ' + formatDuration(info.duration);
     
-    // Display video formats
+    // Display video formats - DYNAMIC
     const videoFormats = document.getElementById('videoFormats');
     videoFormats.innerHTML = '';
     
-    // Add best quality option first
+    // Intelligently detect available qualities from backend
+    const availableQualities = new Set();
+    if (info.video_formats && info.video_formats.length > 0) {
+        info.video_formats.forEach(format => {
+            const quality = format.quality || '';
+            if (quality.includes('2160') || quality.includes('4K')) availableQualities.add('4K');
+            if (quality.includes('1440') || quality.includes('2K')) availableQualities.add('2K');
+            if (quality.includes('1080')) availableQualities.add('1080p');
+            if (quality.includes('720')) availableQualities.add('720p');
+            if (quality.includes('480')) availableQualities.add('480p');
+            if (quality.includes('360')) availableQualities.add('360p');
+        });
+    }
+    
+    // Best quality button
     const bestVideoBtn = document.createElement('button');
     bestVideoBtn.className = 'format-btn best-quality';
     bestVideoBtn.type = 'button';
-    bestVideoBtn.innerHTML = '<i class="fas fa-star"></i> Best Quality Available';
+    bestVideoBtn.innerHTML = '<i class="fas fa-crown"></i> Best Quality Available';
     bestVideoBtn.dataset.formatId = 'best';
     bestVideoBtn.dataset.type = 'video';
     bestVideoBtn.addEventListener('click', () => handleFormatDownload(bestVideoBtn, 'best', 'video'));
     videoFormats.appendChild(bestVideoBtn);
     
-    // Add standard quality options
-    const standardQualities = [
-        { id: 'bestvideo[height<=2160]+bestaudio/best', label: '4K (2160p)', icon: 'crown' },
-        { id: 'bestvideo[height<=1440]+bestaudio/best', label: '2K (1440p)', icon: 'gem' },
-        { id: 'bestvideo[height<=1080]+bestaudio/best', label: 'Full HD (1080p)', icon: 'video' },
-        { id: 'bestvideo[height<=720]+bestaudio/best', label: 'HD (720p)', icon: 'video' },
-        { id: 'bestvideo[height<=480]+bestaudio/best', label: 'SD (480p)', icon: 'video' },
-        { id: 'bestvideo[height<=360]+bestaudio/best', label: 'Low (360p)', icon: 'video' }
+    // Dynamic quality options based on availability
+    const qualityPresets = [
+        { id: 'bestvideo[height<=2160]+bestaudio/best', label: '4K (2160p)', icon: 'gem', key: '4K' },
+        { id: 'bestvideo[height<=1440]+bestaudio/best', label: '2K (1440p)', icon: 'star', key: '2K' },
+        { id: 'bestvideo[height<=1080]+bestaudio/best', label: 'Full HD (1080p)', icon: 'video', key: '1080p' },
+        { id: 'bestvideo[height<=720]+bestaudio/best', label: 'HD (720p)', icon: 'video', key: '720p' },
+        { id: 'bestvideo[height<=480]+bestaudio/best', label: 'SD (480p)', icon: 'video', key: '480p' },
+        { id: 'bestvideo[height<=360]+bestaudio/best', label: 'Low (360p)', icon: 'mobile-alt', key: '360p' }
     ];
     
-    standardQualities.forEach(quality => {
-        const btn = document.createElement('button');
-        btn.className = 'format-btn';
-        btn.type = 'button';
-        btn.innerHTML = `<i class="fas fa-${quality.icon}"></i> ${quality.label}`;
-        btn.dataset.formatId = quality.id;
-        btn.dataset.type = 'video';
-        btn.addEventListener('click', () => handleFormatDownload(btn, quality.id, 'video'));
-        videoFormats.appendChild(btn);
+    // Only show qualities that are actually available or always show top 3
+    qualityPresets.forEach((quality, index) => {
+        // Show all qualities or only available ones based on detection
+        if (availableQualities.size === 0 || availableQualities.has(quality.key) || index < 3) {
+            const btn = document.createElement('button');
+            btn.className = 'format-btn';
+            btn.type = 'button';
+            btn.innerHTML = `<i class="fas fa-${quality.icon}"></i> ${quality.label}`;
+            btn.dataset.formatId = quality.id;
+            btn.dataset.type = 'video';
+            btn.addEventListener('click', () => handleFormatDownload(btn, quality.id, 'video'));
+            videoFormats.appendChild(btn);
+        }
     });
     
+    // Add specific formats from backend if available
     if (info.video_formats && info.video_formats.length > 0) {
+        const uniqueFormats = new Map();
         info.video_formats.forEach(format => {
+            const key = `${format.quality}_${format.ext}`;
+            if (!uniqueFormats.has(key)) {
+                uniqueFormats.set(key, format);
+            }
+        });
+        
+        uniqueFormats.forEach(format => {
             const btn = createFormatButton(format, 'video');
             videoFormats.appendChild(btn);
         });
     }
     
-    // Display audio formats
+    // Display audio formats - DYNAMIC
     const audioFormats = document.getElementById('audioFormats');
     audioFormats.innerHTML = '';
     
-    // Add best audio quality option first
+    // Best audio button
     const bestAudioBtn = document.createElement('button');
     bestAudioBtn.className = 'format-btn best-quality';
     bestAudioBtn.type = 'button';
-    bestAudioBtn.innerHTML = '<i class="fas fa-star"></i> Best Quality MP3 (320kbps)';
+    bestAudioBtn.innerHTML = '<i class="fas fa-crown"></i> Best Quality MP3 (320kbps)';
     bestAudioBtn.dataset.formatId = 'bestaudio';
     bestAudioBtn.dataset.type = 'audio';
     bestAudioBtn.addEventListener('click', () => handleFormatDownload(bestAudioBtn, 'bestaudio', 'audio'));
     audioFormats.appendChild(bestAudioBtn);
     
-    // Add standard audio quality options
-    const standardAudioQualities = [
+    // Dynamic audio quality presets
+    const audioPresets = [
         { id: 'bestaudio[abr<=320]', label: 'High Quality (320kbps)', icon: 'music' },
         { id: 'bestaudio[abr<=256]', label: 'Very Good (256kbps)', icon: 'music' },
         { id: 'bestaudio[abr<=192]', label: 'Good (192kbps)', icon: 'music' },
-        { id: 'bestaudio[abr<=128]', label: 'Medium (128kbps)', icon: 'music' },
-        { id: 'bestaudio[abr<=96]', label: 'Low (96kbps)', icon: 'music' }
+        { id: 'bestaudio[abr<=128]', label: 'Standard (128kbps)', icon: 'headphones' },
+        { id: 'bestaudio[abr<=96]', label: 'Low (96kbps)', icon: 'mobile-alt' }
     ];
     
-    standardAudioQualities.forEach(quality => {
+    audioPresets.forEach(quality => {
         const btn = document.createElement('button');
         btn.className = 'format-btn';
         btn.type = 'button';
@@ -177,8 +204,17 @@ function displayMediaInfo(info) {
         audioFormats.appendChild(btn);
     });
     
+    // Add specific audio formats from backend if available
     if (info.audio_formats && info.audio_formats.length > 0) {
+        const uniqueAudioFormats = new Map();
         info.audio_formats.forEach(format => {
+            const key = `${format.quality}_${format.ext}`;
+            if (!uniqueAudioFormats.has(key)) {
+                uniqueAudioFormats.set(key, format);
+            }
+        });
+        
+        uniqueAudioFormats.forEach(format => {
             const btn = createFormatButton(format, 'audio');
             audioFormats.appendChild(btn);
         });
@@ -536,7 +572,15 @@ function hideDownloadResult() {
     if (resultEl) fadeOut(resultEl);
 }
 
-// All ad functionality completely removed
-// No redirects will occur anywhere on the site
+// Register service worker for ads
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(function(registration) {
+            console.log('Service Worker registered successfully:', registration.scope);
+        })
+        .catch(function(error) {
+            console.log('Service Worker registration failed:', error);
+        });
+}
 
 console.log('Media Downloader by Achek Digital Solutions - Ready!');

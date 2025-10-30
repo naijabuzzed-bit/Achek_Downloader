@@ -39,6 +39,10 @@ cleanup_thread.start()
 def index():
     return render_template('index.html')
 
+@app.route('/sw.js')
+def service_worker():
+    return send_from_directory('.', 'sw.js', mimetype='application/javascript')
+
 @app.route('/fetch_info', methods=['POST'])
 def fetch_info():
     try:

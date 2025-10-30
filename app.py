@@ -37,10 +37,14 @@ def get_info():
             },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web'],
+                    'player_client': ['android', 'ios', 'web'],
+                    'player_skip': ['webpage', 'configs'],
                     'skip': ['dash', 'hls']
                 }
-            }
+            },
+            'age_limit': None,
+            'geo_bypass': True,
+            'geo_bypass_country': 'US'
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -95,9 +99,7 @@ def get_info():
     except Exception as e:
         error_message = str(e)
         
-        if 'bot' in error_message.lower() or 'sign in' in error_message.lower():
-            return jsonify({'error': '🤖 YouTube requires verification. Try a different video or upgrade to premium for bot-free downloads.'}), 400
-        elif 'private' in error_message.lower() or 'login' in error_message.lower():
+        if 'private' in error_message.lower() or 'login' in error_message.lower():
             return jsonify({'error': '🔐 This content is private or requires login. Upgrade to premium for access to protected content.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
             return jsonify({'error': '🌍 This content may be restricted in your region. Premium users can access geo-restricted content.'}), 400
@@ -138,10 +140,14 @@ def download():
             },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web'],
+                    'player_client': ['android', 'ios', 'web'],
+                    'player_skip': ['webpage', 'configs'],
                     'skip': ['dash', 'hls']
                 }
-            }
+            },
+            'age_limit': None,
+            'geo_bypass': True,
+            'geo_bypass_country': 'US'
         }
 
         if download_type == 'audio':
@@ -188,9 +194,7 @@ def download():
     except Exception as e:
         error_message = str(e)
         
-        if 'bot' in error_message.lower() or 'sign in' in error_message.lower():
-            return jsonify({'error': '🤖 YouTube verification required. Try another video or upgrade to premium.'}), 400
-        elif 'private' in error_message.lower() or 'login' in error_message.lower():
+        if 'private' in error_message.lower() or 'login' in error_message.lower():
             return jsonify({'error': '🔐 This content is private. Upgrade to premium for protected content downloads.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
             return jsonify({'error': '🌍 Content restricted in your region. Premium users get unrestricted access.'}), 400

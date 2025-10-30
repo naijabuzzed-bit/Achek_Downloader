@@ -28,7 +28,10 @@ def get_info():
             'no_warnings': True,
             'extract_flat': False,
             'nocheckcertificate': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            },
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -82,28 +85,17 @@ def get_info():
 
     except Exception as e:
         error_message = str(e)
-
-        # Check if it's a premium/DRM platform
-        drm_platforms = ['spotify.com', 'netflix.com', 'disney', 'hulu.com', 'apple.com/music', 'amazon.com/music', 'tidal.com', 'deezer.com']
-        is_drm_platform = any(platform in url.lower() for platform in drm_platforms)
-
-        if 'DRM' in error_message or 'drm' in error_message.lower() or is_drm_platform:
-            return jsonify({
-                'error': '💎 Premium Content Detected',
-                'message': 'This content is from a premium DRM-protected service (Spotify, Netflix, Disney+, etc.).',
-                'upgrade': True,
-                'upgrade_text': '🚀 Upgrade to Premium to download from these platforms! Contact us for premium access.',
-                'contact': 'Visit achek.com.ng or contact Caleb Onuche for premium subscription.'
-            }), 402
-        elif 'private' in error_message.lower() or 'login' in error_message.lower():
-            return jsonify({'error': '🔐 Private Content: This content requires login or is private. Try public content instead.'}), 400
+        
+        if 'private' in error_message.lower() or 'login' in error_message.lower():
+            return jsonify({'error': '🔐 This content is private or requires login. Please try public content.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
-            return jsonify({'error': '🌍 Geo-Restricted: This content may be restricted in your region.'}), 400
+            return jsonify({'error': '🌍 This content may be restricted in your region.'}), 400
         elif '404' in error_message or 'not found' in error_message.lower():
-            return jsonify({'error': '❌ Content Not Found: The URL may be incorrect, the content may have been removed, or it may be private. Please check the URL and try again.'}), 404
-        elif 'audiomack' in error_message.lower():
-            return jsonify({'error': '🎵 Audiomack Error: Please make sure the URL follows this format: https://audiomack.com/username/song/song-title. The track may have been removed or is private. Try copying the URL directly from the Audiomack page.'}), 400
-        return jsonify({'error': f'Error: {error_message}'}), 500
+            return jsonify({'error': '❌ Content not found. Please check the URL and try again.'}), 404
+        elif 'drm' in error_message.lower():
+            return jsonify({'error': '⚠️ This content is protected and cannot be downloaded.'}), 400
+        
+        return jsonify({'error': f'Unable to process this URL. Please try a different link.'}), 500
 
 @app.route('/download', methods=['POST'])
 def download():
@@ -170,28 +162,17 @@ def download():
 
     except Exception as e:
         error_message = str(e)
-
-        # Check if it's a premium/DRM platform
-        drm_platforms = ['spotify.com', 'netflix.com', 'disney', 'hulu.com', 'apple.com/music', 'amazon.com/music', 'tidal.com', 'deezer.com']
-        is_drm_platform = any(platform in url.lower() if 'currentUrl' in locals() else url.lower() for platform in drm_platforms)
-
-        if 'DRM' in error_message or 'drm' in error_message.lower() or is_drm_platform:
-            return jsonify({
-                'error': '💎 Premium Content Detected',
-                'message': 'This content is from a premium DRM-protected service (Spotify, Netflix, Disney+, etc.).',
-                'upgrade': True,
-                'upgrade_text': '🚀 Upgrade to Premium to download from these platforms! Contact us for premium access.',
-                'contact': 'Visit achek.com.ng or contact Caleb Onuche for premium subscription.'
-            }), 402
-        elif 'private' in error_message.lower() or 'login' in error_message.lower():
-            return jsonify({'error': '🔐 Private Content: This content requires login or is private. Try public content instead.'}), 400
+        
+        if 'private' in error_message.lower() or 'login' in error_message.lower():
+            return jsonify({'error': '🔐 This content is private or requires login.'}), 400
         elif 'geo' in error_message.lower() or 'location' in error_message.lower():
-            return jsonify({'error': '🌍 Geo-Restricted: This content may be restricted in your region.'}), 400
+            return jsonify({'error': '🌍 This content may be restricted in your region.'}), 400
         elif '404' in error_message or 'not found' in error_message.lower():
-            return jsonify({'error': '❌ Content Not Found: The URL may be incorrect, the content may have been removed, or it may be private. Please check the URL and try again.'}), 404
-        elif 'audiomack' in error_message.lower():
-            return jsonify({'error': '🎵 Audiomack Error: Please make sure the URL follows this format: https://audiomack.com/username/song/song-title. The track may have been removed or is private. Try copying the URL directly from the Audiomack page.'}), 400
-        return jsonify({'error': f'Error: {error_message}'}), 500
+            return jsonify({'error': '❌ Content not found. Please check the URL.'}), 404
+        elif 'drm' in error_message.lower():
+            return jsonify({'error': '⚠️ This content is protected and cannot be downloaded.'}), 400
+        
+        return jsonify({'error': f'Download failed. Please try again or use a different URL.'}), 500
 
 @app.route('/download-file/<path:filename>')
 def download_file(filename):

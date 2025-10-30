@@ -3,7 +3,6 @@ from werkzeug.utils import secure_filename
 import yt_dlp
 import os
 import time
-import json
 from pathlib import Path
 
 app = Flask(__name__)
@@ -29,7 +28,7 @@ def get_info():
             'no_warnings': True,
             'extract_flat': False,
             'nocheckcertificate': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0',
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -84,8 +83,12 @@ def get_info():
     except Exception as e:
         error_message = str(e)
         if 'DRM' in error_message or 'drm' in error_message.lower():
-            return jsonify({'error': 'This content is DRM-protected and cannot be downloaded. DRM-protected platforms include Spotify, Netflix, Disney+, and similar streaming services. Please try content from YouTube, Instagram, TikTok, or other supported platforms.'}), 400
-        return jsonify({'error': error_message}), 500
+            return jsonify({'error': '🔒 DRM Protection Detected: This content uses encryption that cannot be bypassed. DRM-protected platforms (Spotify Premium, Netflix, Disney+, Apple Music, etc.) are legally and technically protected. Try publicly accessible content from YouTube, Instagram, TikTok, SoundCloud, or similar platforms instead.'}), 400
+        elif 'private' in error_message.lower() or 'login' in error_message.lower():
+            return jsonify({'error': '🔐 Private Content: This content requires login or is private. Try public content instead.'}), 400
+        elif 'geo' in error_message.lower() or 'location' in error_message.lower():
+            return jsonify({'error': '🌍 Geo-Restricted: This content may be restricted in your region.'}), 400
+        return jsonify({'error': f'Error: {error_message}'}), 500
 
 @app.route('/download', methods=['POST'])
 def download():
@@ -106,7 +109,7 @@ def download():
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0',
         }
 
         if download_type == 'audio':
@@ -153,8 +156,12 @@ def download():
     except Exception as e:
         error_message = str(e)
         if 'DRM' in error_message or 'drm' in error_message.lower():
-            return jsonify({'error': 'This content is DRM-protected and cannot be downloaded. DRM-protected platforms include Spotify, Netflix, Disney+, and similar streaming services. Please try content from YouTube, Instagram, TikTok, or other supported platforms.'}), 400
-        return jsonify({'error': error_message}), 500
+            return jsonify({'error': '🔒 DRM Protection Detected: This content uses encryption that cannot be bypassed. DRM-protected platforms (Spotify Premium, Netflix, Disney+, Apple Music, etc.) are legally and technically protected. Try publicly accessible content from YouTube, Instagram, TikTok, SoundCloud, or similar platforms instead.'}), 400
+        elif 'private' in error_message.lower() or 'login' in error_message.lower():
+            return jsonify({'error': '🔐 Private Content: This content requires login or is private. Try public content instead.'}), 400
+        elif 'geo' in error_message.lower() or 'location' in error_message.lower():
+            return jsonify({'error': '🌍 Geo-Restricted: This content may be restricted in your region.'}), 400
+        return jsonify({'error': f'Error: {error_message}'}), 500
 
 @app.route('/download-file/<path:filename>')
 def download_file(filename):
@@ -171,8 +178,8 @@ def download_file(filename):
             return "Invalid file path", 400
 
         return send_from_directory(
-            app.config['DOWNLOAD_FOLDER'], 
-            safe_filename, 
+            app.config['DOWNLOAD_FOLDER'],
+            safe_filename,
             as_attachment=True
         )
     except FileNotFoundError:

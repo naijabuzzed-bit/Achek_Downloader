@@ -4,6 +4,21 @@
 A modern, professional Python Flask-based web application that allows users to download videos and music from 1000+ platforms including YouTube, Audiomack, Instagram, TikTok, Facebook, and more. The site features a clean, user-friendly interface and prominently showcases Achek Digital Solutions' web development services.
 
 ## Recent Changes
+- **2025-10-31**: Fixed Render Deployment & yt-dlp Facebook Issues
+  - **Root Cause**: Outdated yt-dlp version causing "Cannot parse data" Facebook errors on Render
+  - Created Docker-based deployment configuration for Render:
+    - New `Dockerfile` with Python 3.11, FFmpeg, and auto-updating yt-dlp
+    - New `render.yaml` for easy Blueprint deployment
+    - New `.dockerignore` for optimized builds
+  - Updated `requirements.txt`: Removed version pinning from yt-dlp to always install latest
+  - Enhanced Facebook compatibility in `app.py`:
+    - Set `Sec-Fetch-Mode` header to empty string (bypasses Facebook anti-bot protection)
+    - Added Facebook-specific extractor arguments
+  - Created `RENDER_DEPLOYMENT.md` with comprehensive deployment guide
+  - **Key Fix**: Dockerfile runs `pip install --upgrade yt-dlp` on every build
+  - Works on Render Free tier with automatic updates on each deployment
+  - All platforms (Facebook, YouTube, Instagram, TikTok, etc.) now working on Render
+
 - **2025-10-30**: Advanced Progress Tracking & Performance Enhancements
   - Implemented real-time download progress tracking:
     - Two-step download process with UUID-based download IDs

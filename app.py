@@ -103,7 +103,7 @@ def fetch_info():
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1',
                 'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Mode': '',
                 'Sec-Fetch-Site': 'none',
                 'Sec-Fetch-User': '?1',
                 'Cache-Control': 'max-age=0',
@@ -122,6 +122,9 @@ def fetch_info():
                 'youtube': {
                     'player_client': ['android', 'web'],
                     'skip': ['hls', 'dash'],
+                },
+                'facebook': {
+                    'legacy_api': False,
                 },
             },
             'force_generic_extractor': False,

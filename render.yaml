@@ -8,6 +8,6 @@ services:
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11
+        value: 3.13
       - key: PORT
         value: 5000

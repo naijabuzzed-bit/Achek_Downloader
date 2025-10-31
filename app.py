@@ -122,6 +122,7 @@ def fetch_info():
                 },
                 'tiktok': {
                     'api': 'mobile_app',
+                    'webpage_download': True,
                 },
                 'youtube': {
                     'player_client': ['android', 'web'],

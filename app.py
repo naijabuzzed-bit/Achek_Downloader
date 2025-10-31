@@ -188,112 +188,118 @@ def fetch_info():
     except yt_dlp.utils.DownloadError as e:
         error_msg = str(e)
         print(f"Download Error: {error_msg}")
-        
-        # Detect platform from URL for better error messages
+
+        # Detect platform from URL for accurate error messages
         platform = 'unknown'
         if url:
             url_lower = url.lower()
-            if 'instagram.com' in url_lower:
-                platform = 'instagram'
-            elif 'tiktok.com' in url_lower:
+            if 'tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower:
                 platform = 'tiktok'
+            elif 'instagram.com' in url_lower:
+                platform = 'instagram'
             elif 'youtube.com' in url_lower or 'youtu.be' in url_lower:
                 platform = 'youtube'
-            elif 'facebook.com' in url_lower or 'fb.watch' in url_lower:
-                platform = 'facebook'
             elif 'twitter.com' in url_lower or 'x.com' in url_lower:
                 platform = 'twitter'
+            elif 'facebook.com' in url_lower or 'fb.watch' in url_lower or 'fb.me' in url_lower:
+                platform = 'facebook'
             elif 'spotify.com' in url_lower:
                 platform = 'spotify'
             elif 'audiomack.com' in url_lower:
                 platform = 'audiomack'
+            elif 'soundcloud.com' in url_lower:
+                platform = 'soundcloud'
+            elif 'vimeo.com' in url_lower:
+                platform = 'vimeo'
             elif 'netflix.com' in url_lower:
                 platform = 'netflix'
-        
-        # Check if it's Instagram and try alternative extraction
-        if platform == 'instagram':
-            try:
-                # Try with more aggressive options for Instagram
-                alt_opts = ydl_opts.copy()
-                alt_opts['extractor_args']['instagram'] = {
-                    'include_stories': True,
-                    'include_highlights': True,
-                }
-                alt_opts['format'] = 'best'
-                
-                with yt_dlp.YoutubeDL(alt_opts) as ydl_alt:
-                    info = ydl_alt.extract_info(url, download=False)
-                    if info:
-                        # Process the info as normal
-                        video_formats = []
-                        audio_formats = []
 
-                        if 'formats' in info and info['formats']:
-                            for f in info['formats']:
-                                if f.get('vcodec') != 'none':
-                                    quality = f.get('format_note', f.get('quality', 'Unknown'))
-                                    height = f.get('height', 0)
-                                    ext = f.get('ext', 'mp4')
-                                    filesize = f.get('filesize', 0) or f.get('filesize_approx', 0)
-                                    filesize_mb = round(filesize / (1024 * 1024), 2) if filesize else 'Unknown'
+        # Platform-specific error handling with detailed messages
+        if platform == 'tiktok':
+            if 'Unable to extract' in error_msg or 'webpage video data' in error_msg or 'video data' in error_msg.lower():
+                return jsonify({'error': '📱 TikTok Error: Unable to access this video. Possible reasons:\n• Video is private or deleted\n• Account is private\n• Video is region-locked\n• TikTok is blocking automated access\n\nSolutions:\n✓ Make sure the video is public\n✓ Try a different TikTok video\n✓ Wait 2-3 minutes and try again\n✓ Copy the link directly from TikTok app/website'}), 400
+            elif 'Login required' in error_msg or 'sign in' in error_msg.lower():
+                return jsonify({'error': '📱 TikTok requires login to access this content. Only public videos from public accounts can be downloaded without authentication.'}), 400
+            else:
+                return jsonify({'error': '📱 TikTok download failed. The video may be unavailable or TikTok is blocking requests. Wait 2-3 minutes and try again with a different video.'}), 400
 
-                                    video_formats.append({
-                                        'format_id': f.get('format_id'),
-                                        'quality': f"{height}p" if height else quality,
-                                        'ext': ext,
-                                        'filesize': filesize_mb
-                                    })
+        elif platform == 'instagram':
+            if 'rate-limit' in error_msg.lower() or 'rate limit' in error_msg.lower():
+                return jsonify({'error': '📸 Instagram Rate Limit: Too many requests detected.\n\nSolutions:\n✓ Wait 5-10 minutes before trying again\n✓ Instagram blocks automated downloads temporarily\n✓ Try a different post in the meantime\n✓ Make sure the post is public'}), 400
+            elif 'login required' in error_msg.lower() or 'authentication' in error_msg.lower():
+                return jsonify({'error': '📸 Instagram Login Required: This content requires authentication.\n\nPossible reasons:\n• Post is from a private account\n• Content is age-restricted\n• Instagram is blocking automated access\n\nOnly public posts and reels can be downloaded.'}), 400
+            elif 'not available' in error_msg.lower() or 'content is not available' in error_msg.lower():
+                return jsonify({'error': '📸 Instagram Content Unavailable:\n• Post may be deleted or made private\n• Story/Highlight has expired\n• Account is private or blocked\n• Region restrictions apply\n\nTry a different public post or reel.'}), 400
+            elif 'private' in error_msg.lower():
+                return jsonify({'error': '📸 This Instagram account/post is private. Only public content can be downloaded.'}), 400
+            else:
+                return jsonify({'error': '📸 Instagram Error: Unable to fetch content. Instagram may be blocking requests.\n\nSolutions:\n✓ Wait 5-10 minutes and try again\n✓ Make sure the post/reel is public\n✓ Try copying the link directly from Instagram app\n✓ Use a different public post'}), 400
 
-                                elif f.get('acodec') != 'none' and f.get('vcodec') == 'none':
-                                    abr = f.get('abr', 0)
-                                    ext = f.get('ext', 'mp3')
-                                    filesize = f.get('filesize', 0) or f.get('filesize_approx', 0)
-                                    filesize_mb = round(filesize / (1024 * 1024), 2) if filesize else 'Unknown'
+        elif platform == 'youtube':
+            if 'private' in error_msg.lower() or 'unavailable' in error_msg.lower():
+                return jsonify({'error': '🎬 YouTube video is private, deleted, or unavailable in your region.'}), 400
+            elif 'age' in error_msg.lower() or 'restricted' in error_msg.lower():
+                return jsonify({'error': '🔞 This YouTube video is age-restricted and requires login to access.'}), 400
+            elif 'live' in error_msg.lower():
+                return jsonify({'error': '📡 Live streams cannot be downloaded. Wait until the stream ends and try again.'}), 400
+            else:
+                return jsonify({'error': '🎬 YouTube download failed. The video may be region-locked, removed, or have download restrictions.'}), 400
 
-                                    audio_formats.append({
-                                        'format_id': f.get('format_id'),
-                                        'quality': f"{int(abr)}kbps" if abr else 'Audio',
-                                        'ext': ext,
-                                        'filesize': filesize_mb
-                                    })
+        elif platform == 'facebook':
+            if 'login required' in error_msg.lower() or 'private' in error_msg.lower():
+                return jsonify({'error': '📘 Facebook content is private or requires login. Only public videos can be downloaded.'}), 400
+            else:
+                return jsonify({'error': '📘 Facebook download failed. Make sure the video is public and not from a private group or profile.'}), 400
 
-                        video_formats = list({v['format_id']: v for v in video_formats}.values())
-                        audio_formats = list({a['format_id']: a for a in audio_formats}.values())
+        elif platform == 'twitter':
+            if 'no video' in error_msg.lower() or 'no media' in error_msg.lower():
+                return jsonify({'error': '😕 This tweet doesn\'t contain a video. We can only download tweets with video content.'}), 400
+            elif 'private' in error_msg.lower() or 'protected' in error_msg.lower():
+                return jsonify({'error': '🔒 This Twitter/X account is private. Only public tweets can be downloaded.'}), 400
+            else:
+                return jsonify({'error': '❌ Twitter/X download failed. Make sure the tweet is public and contains video content.'}), 400
 
-                        video_formats = sorted(video_formats, key=lambda x: int(x['quality'].replace('p', '')) if x['quality'].replace('p', '').isdigit() else 0, reverse=True)
-                        audio_formats = sorted(audio_formats, key=lambda x: int(x['quality'].replace('kbps', '')) if 'kbps' in x['quality'] else 0, reverse=True)
+        elif platform == 'spotify':
+            return jsonify({'error': '🎧 Spotify Error: Spotify uses DRM protection and requires premium subscription.\n\nThis content cannot be downloaded directly. Spotify restricts downloading to prevent piracy.'}), 400
 
-                        return jsonify({
-                            'success': True,
-                            'title': info.get('title', 'Unknown Title'),
-                            'thumbnail': info.get('thumbnail', ''),
-                            'uploader': info.get('uploader', 'Unknown'),
-                            'duration': info.get('duration_string', 'Unknown'),
-                            'video_formats': video_formats[:15],
-                            'audio_formats': audio_formats[:8]
-                        })
-            except Exception as alt_error:
-                print(f"Alternative extraction failed: {alt_error}")
-        
-        # Handle specific errors
+        elif platform == 'audiomack':
+            return jsonify({'error': '🎵 Audiomack download failed.\n\nPossible reasons:\n• Track is premium-only\n• Content is region-locked\n• Link is invalid\n\nSolutions:\n✓ Make sure the track is publicly available\n✓ Copy the link directly from Audiomack\n✓ Try a different free track'}), 400
+
+        elif platform == 'soundcloud':
+            if 'private' in error_msg.lower():
+                return jsonify({'error': '🎶 This SoundCloud track is private. Only public tracks can be downloaded.'}), 400
+            else:
+                return jsonify({'error': '🎶 SoundCloud download failed. Make sure the track is public and not premium-only.'}), 400
+
+        elif platform == 'vimeo':
+            if 'password' in error_msg.lower() or 'private' in error_msg.lower():
+                return jsonify({'error': '🎥 This Vimeo video is password-protected or private. Only public videos can be downloaded.'}), 400
+            else:
+                return jsonify({'error': '🎥 Vimeo download failed. The video may have download restrictions or be private.'}), 400
+
+        elif platform == 'netflix':
+            return jsonify({'error': '🎬 Netflix content is DRM-protected and cannot be downloaded. This is a copyright restriction enforced by Netflix.'}), 400
+
+        # Generic error handling for other platforms
         if 'DRM' in error_msg or 'protected' in error_msg.lower():
-            return jsonify({'error': 'This content is DRM-protected and cannot be downloaded.'}), 400
-        elif '429' in error_msg or 'Too Many Requests' in error_msg:
-            return jsonify({'error': 'Rate limit reached. Please wait 2-3 minutes and try again.'}), 400
-        elif 'no video in this post' in error_msg.lower():
-            return jsonify({'error': 'This post contains only images. Try a video post or reel instead.'}), 400
-        elif 'geo' in error_msg.lower() or 'not available' in error_msg.lower() or 'region' in error_msg.lower():
-            return jsonify({'error': 'Content temporarily unavailable. Instagram may be blocking automated requests. Try again in a few minutes or use a different post.'}), 400
+            return jsonify({'error': '🔒 This content is DRM-protected and cannot be downloaded due to copyright restrictions.'}), 400
+        elif '429' in error_msg or 'Too Many Requests' in error_msg or 'rate limit' in error_msg.lower():
+            return jsonify({'error': '⏰ Rate Limit Reached: Too many requests.\n\nPlease wait 5-10 minutes and try again. The platform is temporarily blocking automated downloads.'}), 400
+        elif 'geo' in error_msg.lower() or 'region' in error_msg.lower():
+            return jsonify({'error': '🌍 This content is region-locked and not available in your location.'}), 400
         elif 'private' in error_msg.lower():
-            return jsonify({'error': 'This content is private. Make sure the account/post is public.'}), 400
-        elif 'login' in error_msg.lower() or 'sign in' in error_msg.lower():
-            return jsonify({'error': 'Login required. Only public content can be downloaded.'}), 400
+            return jsonify({'error': '🔒 This content is private. Only public content can be downloaded.'}), 400
+        elif 'login' in error_msg.lower() or 'sign in' in error_msg.lower() or 'authentication' in error_msg.lower():
+            return jsonify({'error': '🔐 Login required. Only public content can be downloaded without authentication.'}), 400
+        elif 'no video' in error_msg.lower() or 'no media' in error_msg.lower():
+            return jsonify({'error': '📭 No video found. This post may contain only images or text.'}), 400
         else:
-            return jsonify({'error': f'Unable to fetch media. Instagram may be blocking requests. Wait 2-3 minutes and try again, or try a different post.'}), 400
+            return jsonify({'error': f'⚠️ Download Error: Unable to access this content.\n\nPossible reasons:\n• Content is unavailable or deleted\n• Platform is blocking automated access\n• Link is invalid\n\nPlease try:\n✓ Checking if the content is public\n✓ Waiting a few minutes and trying again\n✓ Using a different link'}), 400
+
     except Exception as e:
         error_message = str(e)
         print(f"ERROR: {error_message}")
-        
+
         # Detect platform from URL
         platform = 'unknown'
         if url:
@@ -314,7 +320,7 @@ def fetch_info():
                 platform = 'audiomack'
             elif 'netflix.com' in url_lower:
                 platform = 'netflix'
-        
+
         # Provide more helpful, user-friendly error messages based on detected platform
         if platform == 'twitter':
             if 'no video' in error_message.lower():
@@ -363,16 +369,16 @@ def progress_hook(d, download_id):
         if 'total_bytes' in d or 'total_bytes_estimate' in d:
             total = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
             downloaded = d.get('downloaded_bytes', 0)
-            
+
             if total > 0:
                 percentage = int((downloaded / total) * 100)
             else:
                 percentage = 0
-            
+
             # Calculate speed and ETA
             speed = d.get('speed', 0)
             eta = d.get('eta', 0)
-            
+
             download_progress[download_id] = {
                 'status': 'downloading',
                 'percentage': percentage,
@@ -415,7 +421,7 @@ def start_download():
         # Generate unique download ID
         download_id = str(uuid.uuid4())
         timestamp = int(time.time())
-        
+
         # Initialize progress
         download_progress[download_id] = {
             'status': 'starting',
@@ -424,13 +430,13 @@ def start_download():
             'timestamp': timestamp,
             'type': download_type
         }
-        
+
         # Return download_id immediately so client can start polling
         return jsonify({
             'success': True,
             'download_id': download_id
         })
-        
+
     except Exception as e:
         return jsonify({'error': f'Failed to start download: {str(e)}'}), 500
 
@@ -446,12 +452,12 @@ def download():
 
         if not url:
             return jsonify({'error': 'URL is required'}), 400
-        
+
         if not download_id:
             return jsonify({'error': 'Download ID is required'}), 400
 
         timestamp = int(time.time())
-        
+
         # Update progress status
         if download_id in download_progress:
             download_progress[download_id]['status'] = 'downloading'
@@ -535,7 +541,7 @@ def download():
 
         download_filename = downloaded_files[0]
         download_url = f'/static/downloads/{download_filename}'
-        
+
         # Mark as complete and schedule cleanup
         if download_id in download_progress:
             download_progress[download_id] = {
@@ -543,7 +549,7 @@ def download():
                 'percentage': 100,
                 'message': 'Download complete!'
             }
-        
+
         # Schedule cleanup after 10 seconds
         def cleanup():
             time.sleep(10)

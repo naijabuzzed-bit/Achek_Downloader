@@ -565,6 +565,37 @@ function hideDownloadResult() {
     if (resultEl) fadeOut(resultEl);
 }
 
+// Download Another Button Handler
+document.addEventListener('DOMContentLoaded', () => {
+    const downloadAnotherBtn = document.getElementById('downloadAnotherBtn');
+    if (downloadAnotherBtn) {
+        downloadAnotherBtn.addEventListener('click', () => {
+            // Reset the form
+            document.getElementById('urlInput').value = '';
+            currentUrl = '';
+            mediaInfo = null;
+            
+            // Hide all result sections
+            hideDownloadResult();
+            hideMediaInfo();
+            hideDownloadProgress();
+            hideError();
+            
+            // Reset all format buttons
+            resetAllFormatButtons();
+            
+            // Scroll to top of page
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            
+            // Focus on URL input
+            document.getElementById('urlInput').focus();
+        });
+    }
+});
+
 // Service worker disabled to prevent unwanted redirects
 // Google AdSense is used for monetization instead
 

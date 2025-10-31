@@ -4,15 +4,18 @@
 A modern, professional Python Flask-based web application that allows users to download videos and music from 1000+ platforms including YouTube, Audiomack, Instagram, TikTok, Facebook, and more. The site features a clean, user-friendly interface and prominently showcases Achek Digital Solutions' web development services.
 
 ## Recent Changes
-- **2025-10-31**: Final Ad Implementation - AdSense Auto Ads + Monetag Direct Link
-  - **Google AdSense Auto Ads** on ALL pages (all 7 pages)
-    - Script: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5807971758805138`
-    - Google automatically places ads across the site
-  - **Monetag Direct Link** ONLY on homepage download buttons (index.html):
+- **2025-10-31**: AMP Auto Ads + Monetag Direct Link - Complete Implementation
+  - **Google AMP Auto Ads** on ALL 7 pages:
+    - Script in `<head>`: `<script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>`
+    - Element after `<body>`: `<amp-auto-ads type="adsense" data-ad-client="ca-pub-5807971758805138"></amp-auto-ads>`
+    - Google AMP automatically places and optimizes ads across the entire site
+    - Pages: index, youtube, tiktok, instagram, facebook, spotify, audiomack
+  - **Monetag Direct Link** on homepage download buttons (index.html):
     - Direct Link: `https://otieu.com/4/10117202`
-    - Two-click system: First click opens ad in new tab, second click starts download
+    - Recurring ad system: Opens ad on EVERY odd click (1st, 3rd, 5th...), download on even clicks (2nd, 4th, 6th...)
+    - Click flow: Ad → Download → Ad → Download → Ad → Download (repeating)
     - Implemented in JavaScript (`static/js/script.js`)
-  - Clean monetization: AdSense everywhere + Monetag direct link on homepage only
+  - Clean dual monetization: AMP Auto Ads site-wide + Monetag direct link on homepage
 
 - **2025-10-31**: Fixed Render Deployment & yt-dlp Facebook Issues
   - **Root Cause**: Outdated yt-dlp version causing "Cannot parse data" Facebook errors on Render

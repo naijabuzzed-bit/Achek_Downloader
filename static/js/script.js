@@ -220,16 +220,20 @@ function createDefaultButton(type) {
     return btn;
 }
 
-// Handle format download with Monetag ad (two-click system)
+// Handle format download with Monetag ad (recurring ad system)
 async function handleFormatDownload(button, formatId, type) {
     const adTriggered = button.dataset.adTriggered === 'true';
     
     if (!adTriggered) {
-        // FIRST CLICK: Show Monetag ad redirect
+        // FIRST CLICK (and every odd click): Show Monetag ad redirect
         button.dataset.adTriggered = 'true';
         
+        // Store original text if not already stored
+        if (!button.dataset.originalText) {
+            button.dataset.originalText = button.innerHTML;
+        }
+        
         // Update button to show next step
-        const originalText = button.innerHTML;
         button.innerHTML = '<span>✅</span> Click Again to Download';
         button.style.background = 'linear-gradient(135deg, #10B981, #059669)';
         button.style.color = 'white';
@@ -242,7 +246,7 @@ async function handleFormatDownload(button, formatId, type) {
         // Reset button after 10 seconds if not clicked
         setTimeout(() => {
             if (button.dataset.adTriggered === 'true') {
-                button.innerHTML = originalText;
+                button.innerHTML = button.dataset.originalText;
                 button.style.background = '';
                 button.style.color = '';
                 button.style.animation = '';
@@ -253,22 +257,29 @@ async function handleFormatDownload(button, formatId, type) {
         return;
     }
     
-    // SECOND CLICK: Start actual download
-    button.dataset.adTriggered = 'false'; // Reset for next time
+    // SECOND CLICK (and every even click): Start actual download
     button.disabled = true;
     button.style.pointerEvents = 'none';
     button.style.animation = '';
-    const originalText = button.innerHTML;
     button.innerHTML = '<span>⏳</span> Downloading...';
     button.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
     button.style.color = 'white';
     
     try {
         await downloadWithFormat(formatId, type);
-    } catch (error) {
-        button.innerHTML = originalText;
+        
+        // Download successful - restore original state for next ad cycle
+        button.innerHTML = button.dataset.originalText;
         button.style.background = '';
         button.style.color = '';
+        button.dataset.adTriggered = 'false'; // Reset so next click (3rd, 5th, etc.) opens ad again
+        
+    } catch (error) {
+        // Error - restore original state
+        button.innerHTML = button.dataset.originalText;
+        button.style.background = '';
+        button.style.color = '';
+        button.dataset.adTriggered = 'false'; // Reset even on error
     } finally {
         button.disabled = false;
         button.style.pointerEvents = '';

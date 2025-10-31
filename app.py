@@ -93,13 +93,16 @@ def fetch_info():
                     'api': 'syndication',
                 },
                 'tiktok': {
-                    'api': 'mobile_app',
+                    'api': ['mobile_api', 'web'],
+                    'device_id': None,
                 },
                 'youtube': {
-                    'player_client': ['android', 'web'],
+                    'player_client': ['android', 'web', 'ios'],
                     'skip': ['hls', 'dash'],
                 },
             },
+            'prefer_insecure': False,
+            'legacy_server_connect': False,
             'force_generic_extractor': False,
         }
 
@@ -165,8 +168,23 @@ def fetch_info():
         error_msg = str(e)
         print(f"Download Error: {error_msg}")
         
+        # Detect platform from URL for accurate error messages
+        platform = 'unknown'
+        if url:
+            url_lower = url.lower()
+            if 'tiktok.com' in url_lower:
+                platform = 'tiktok'
+            elif 'instagram.com' in url_lower:
+                platform = 'instagram'
+            elif 'youtube.com' in url_lower or 'youtu.be' in url_lower:
+                platform = 'youtube'
+            elif 'twitter.com' in url_lower or 'x.com' in url_lower:
+                platform = 'twitter'
+            elif 'facebook.com' in url_lower or 'fb.watch' in url_lower:
+                platform = 'facebook'
+        
         # Check if it's Instagram and try alternative extraction
-        if url and 'instagram.com' in url.lower():
+        if platform == 'instagram':
             try:
                 # Try with more aggressive options for Instagram
                 alt_opts = ydl_opts.copy()
@@ -229,6 +247,13 @@ def fetch_info():
                         })
             except Exception as alt_error:
                 print(f"Alternative extraction failed: {alt_error}")
+        
+        # Handle TikTok-specific errors
+        if platform == 'tiktok':
+            if 'Unable to extract' in error_msg or 'webpage video data' in error_msg:
+                return jsonify({'error': '📱 TikTok video unavailable. This video may be private, deleted, or region-locked. Try a different TikTok video or wait a few minutes.'}), 400
+            else:
+                return jsonify({'error': '📱 TikTok download failed. Make sure the video is public and the link is correct. TikTok may be blocking requests - try again in 2-3 minutes.'}), 400
         
         # Handle specific errors
         if 'DRM' in error_msg or 'protected' in error_msg.lower():

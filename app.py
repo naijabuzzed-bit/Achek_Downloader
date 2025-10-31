@@ -43,6 +43,10 @@ def index():
 def service_worker():
     return send_from_directory('.', 'sw.js', mimetype='application/javascript')
 
+@app.route('/robots.txt')
+def robots():
+    return send_from_directory('.', 'robots.txt', mimetype='text/plain')
+
 @app.route('/fetch_info', methods=['POST'])
 def fetch_info():
     url = ''
@@ -251,23 +255,31 @@ def fetch_info():
                 error_message = "😕 This tweet doesn't have a video. We can only download tweets that contain videos."
             else:
                 error_message = "❌ Couldn't access this Twitter/X content. Make sure the tweet is public and contains media."
-        elif 'instagram' in error_message.lower():
-            error_message = "⚠️ Instagram temporarily blocked this request. Please wait 2-3 minutes and try again. Make sure you're using a public post or reel link."
-        elif 'audiomack' in error_message.lower():
-            error_message = "🎵 Couldn't find this Audiomack song. Please check the link and make sure the song is publicly available."
-        elif 'tiktok' in error_message.lower():
+        elif 'instagram' in error_message.lower() or (url and 'instagram.com' in url.lower()):
+            error_message = "📸 Instagram temporarily blocked this request. Please wait 2-3 minutes and try again. Make sure you're using a public post or reel link."
+        elif 'audiomack' in error_message.lower() or (url and 'audiomack.com' in url.lower()):
+            error_message = "🎵 Couldn't download from Audiomack. Please check the link and make sure the song is publicly available. Try copying the link directly from your browser."
+        elif 'spotify' in error_message.lower() or (url and 'spotify.com' in url.lower()):
+            error_message = "🎧 Spotify content couldn't be accessed. Make sure the track/playlist is public and the link is correct."
+        elif 'netflix' in error_message.lower() or (url and 'netflix.com' in url.lower()):
+            error_message = "🎬 Netflix content is DRM-protected and cannot be downloaded. This is due to copyright restrictions."
+        elif 'tiktok' in error_message.lower() or (url and 'tiktok.com' in url.lower()):
             error_message = "📱 TikTok download failed. Make sure the video is public and the link is correct."
-        elif 'facebook' in error_message.lower():
-            error_message = "📘 Facebook content couldn't be accessed. Only public videos can be downloaded."
-        elif 'youtube' in error_message.lower():
+        elif 'facebook' in error_message.lower() or (url and 'facebook.com' in url.lower()):
+            error_message = "📘 Facebook content couldn't be accessed. Only public videos can be downloaded. Private or friends-only posts won't work."
+        elif 'youtube' in error_message.lower() or (url and ('youtube.com' in url.lower() or 'youtu.be' in url.lower())):
             if 'private' in error_message.lower():
                 error_message = "🔒 This YouTube video is private or unavailable."
             elif 'age' in error_message.lower():
                 error_message = "🔞 Age-restricted YouTube content cannot be downloaded without login."
             else:
-                error_message = "🎬 YouTube download failed. The video might be region-locked or removed."
+                error_message = "🎬 YouTube download failed. The video might be region-locked, removed, or live-streamed."
+        elif 'soundcloud' in error_message.lower() or (url and 'soundcloud.com' in url.lower()):
+            error_message = "🎶 SoundCloud download failed. Make sure the track is public and not premium-only."
+        elif 'vimeo' in error_message.lower() or (url and 'vimeo.com' in url.lower()):
+            error_message = "🎥 Vimeo content couldn't be accessed. Only public videos without download restrictions can be downloaded."
         elif 'unsupported' in error_message.lower():
-            error_message = "❓ This website is not supported yet. We support YouTube, Instagram, TikTok, Facebook, Audiomack, and 1000+ other platforms."
+            error_message = "❓ This website is not supported yet. We support YouTube, Spotify, Audiomack, Netflix, Instagram, TikTok, Facebook, and 1000+ other platforms."
         elif 'url' in error_message.lower() or 'invalid' in error_message.lower():
             error_message = "🔗 Invalid link format. Please copy and paste the full URL from your browser."
         else:

@@ -222,16 +222,25 @@ function createDefaultButton(type) {
 
 // Handle format download with Monetag ad (recurring ad system)
 async function handleFormatDownload(button, formatId, type) {
-    const adTriggered = button.dataset.adTriggered === 'true';
+    // Initialize click counter if not exists
+    if (!button.dataset.clickCount) {
+        button.dataset.clickCount = '0';
+    }
     
-    if (!adTriggered) {
-        // FIRST CLICK (and every odd click): Show Monetag ad redirect
-        button.dataset.adTriggered = 'true';
-        
-        // Store original text if not already stored
-        if (!button.dataset.originalText) {
-            button.dataset.originalText = button.innerHTML;
-        }
+    // Store original text if not already stored
+    if (!button.dataset.originalText) {
+        button.dataset.originalText = button.innerHTML;
+    }
+    
+    // Increment click counter
+    const clickCount = parseInt(button.dataset.clickCount) + 1;
+    button.dataset.clickCount = clickCount.toString();
+    
+    // Check if this is an odd click (1st, 3rd, 5th, etc.)
+    const isOddClick = clickCount % 2 === 1;
+    
+    if (isOddClick) {
+        // ODD CLICK (1st, 3rd, 5th, etc.): Show Monetag ad redirect
         
         // Update button to show next step
         button.innerHTML = '<span>✅</span> Click Again to Download';
@@ -243,21 +252,10 @@ async function handleFormatDownload(button, formatId, type) {
         const adUrl = 'https://otieu.com/4/10117202';
         window.open(adUrl, '_blank', 'noopener,noreferrer');
         
-        // Reset button after 10 seconds if not clicked
-        setTimeout(() => {
-            if (button.dataset.adTriggered === 'true') {
-                button.innerHTML = button.dataset.originalText;
-                button.style.background = '';
-                button.style.color = '';
-                button.style.animation = '';
-                button.dataset.adTriggered = 'false';
-            }
-        }, 10000);
-        
         return;
     }
     
-    // SECOND CLICK (and every even click): Start actual download
+    // EVEN CLICK (2nd, 4th, 6th, etc.): Start actual download
     button.disabled = true;
     button.style.pointerEvents = 'none';
     button.style.animation = '';
@@ -272,14 +270,12 @@ async function handleFormatDownload(button, formatId, type) {
         button.innerHTML = button.dataset.originalText;
         button.style.background = '';
         button.style.color = '';
-        button.dataset.adTriggered = 'false'; // Reset so next click (3rd, 5th, etc.) opens ad again
         
     } catch (error) {
         // Error - restore original state
         button.innerHTML = button.dataset.originalText;
         button.style.background = '';
         button.style.color = '';
-        button.dataset.adTriggered = 'false'; // Reset even on error
     } finally {
         button.disabled = false;
         button.style.pointerEvents = '';

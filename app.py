@@ -71,6 +71,10 @@ def service_worker():
 def robots():
     return send_from_directory('.', 'robots.txt', mimetype='text/plain')
 
+@app.route('/ads.txt')
+def ads_txt():
+    return send_from_directory('.', 'ads.txt', mimetype='text/plain')
+
 @app.route('/fetch_info', methods=['POST'])
 def fetch_info():
     url = ''

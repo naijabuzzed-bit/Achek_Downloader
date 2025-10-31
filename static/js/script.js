@@ -129,11 +129,11 @@ function displayMediaInfo(info) {
     bestVideoBtn.addEventListener('click', () => handleFormatDownload(bestVideoBtn, 'best', 'video'));
     videoFormats.appendChild(bestVideoBtn);
     
-    // Essential quality options - ONLY show what's available
+    // Essential quality options - Show 1080P, 480P, 360P
     const qualityPresets = [
-        { id: 'bestvideo[height<=1080]+bestaudio/best', label: 'Full HD (1080p)', icon: 'video', key: '1080p' },
-        { id: 'bestvideo[height<=720]+bestaudio/best', label: 'HD (720p)', icon: 'video', key: '720p' },
-        { id: 'bestvideo[height<=480]+bestaudio/best', label: 'SD (480p)', icon: 'mobile-alt', key: '480p' }
+        { id: 'bestvideo[height<=1080]+bestaudio/best', label: '1080P (Full HD)', icon: 'video', key: '1080p' },
+        { id: 'bestvideo[height<=480]+bestaudio/best', label: '480P (SD)', icon: 'mobile-alt', key: '480p' },
+        { id: 'bestvideo[height<=360]+bestaudio/best', label: '360P (Mobile)', icon: 'mobile', key: '360p' }
     ];
     
     // Only show qualities that are actually available in the video
@@ -235,8 +235,8 @@ async function handleFormatDownload(button, formatId, type) {
         button.style.color = 'white';
         button.style.animation = 'pulse 1.5s infinite';
         
-        // Open Monetag ad in new tab
-        const adUrl = 'https://fpyf8.com/88/tag.min.js?zone=181667';
+        // Open Monetag direct link in new tab
+        const adUrl = 'https://otieu.com/4/10117202';
         window.open(adUrl, '_blank', 'noopener,noreferrer');
         
         // Reset button after 10 seconds if not clicked

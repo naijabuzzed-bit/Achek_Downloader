@@ -45,6 +45,8 @@ def service_worker():
 
 @app.route('/fetch_info', methods=['POST'])
 def fetch_info():
+    url = ''
+    ydl_opts = {}
     try:
         data = request.get_json()
         url = data.get('url')
@@ -57,8 +59,8 @@ def fetch_info():
             'quiet': True,
             'no_warnings': True,
             'extract_flat': False,
-            'socket_timeout': 45,
-            'retries': 10,
+            'socket_timeout': 30,
+            'retries': 5,
             'geo_bypass': True,
             'geo_bypass_country': 'US',
             'age_limit': None,
@@ -160,7 +162,7 @@ def fetch_info():
         print(f"Download Error: {error_msg}")
         
         # Check if it's Instagram and try alternative extraction
-        if 'instagram.com' in url.lower():
+        if url and 'instagram.com' in url.lower():
             try:
                 # Try with more aggressive options for Instagram
                 alt_opts = ydl_opts.copy()
@@ -242,9 +244,9 @@ def fetch_info():
     except Exception as e:
         error_message = str(e)
         print(f"ERROR: {error_message}")
-
+        
         # Provide more helpful, user-friendly error messages
-        if 'twitter' in error_message.lower() or 'x.com' in url.lower():
+        if 'twitter' in error_message.lower() or (url and 'x.com' in url.lower()):
             if 'no video' in error_message.lower():
                 error_message = "😕 This tweet doesn't have a video. We can only download tweets that contain videos."
             else:
@@ -354,6 +356,7 @@ def start_download():
 
 @app.route('/download', methods=['POST'])
 def download():
+    download_id = None
     try:
         data = request.get_json()
         url = data.get('url')
@@ -388,8 +391,8 @@ def download():
                     'preferredcodec': 'mp3',
                     'preferredquality': '320',
                 }],
-                'socket_timeout': 45,
-                'retries': 10,
+                'socket_timeout': 30,
+                'retries': 5,
                 'geo_bypass': True,
                 'nocheckcertificate': True,
                 'source_address': '0.0.0.0',
@@ -416,8 +419,8 @@ def download():
                 'no_warnings': True,
                 'merge_output_format': 'mp4',
                 'progress_hooks': [lambda d: progress_hook(d, download_id)],
-                'socket_timeout': 45,
-                'retries': 10,
+                'socket_timeout': 30,
+                'retries': 5,
                 'geo_bypass': True,
                 'nocheckcertificate': True,
                 'source_address': '0.0.0.0',
@@ -473,7 +476,7 @@ def download():
         })
 
     except Exception as e:
-        if 'download_id' in locals() and download_id in download_progress:
+        if download_id and download_id in download_progress:
             download_progress[download_id] = {'status': 'error', 'percentage': 0, 'message': str(e)}
             # Schedule cleanup for errored downloads too
             def cleanup_error():

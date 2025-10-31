@@ -1,11 +1,6 @@
 Flask==3.0.0
-yt-dlp
+yt-dlp>=2024.10.22
 requests==2.31.0
 python-dotenv==1.0.0
 gunicorn==21.2.0
-Flask==3.0.0
-gunicorn==21.2.0
-python-dotenv==1.0.0
-requests==2.31.0
-werkzeug
-yt-dlp
+werkzeug==3.0.1

@@ -63,8 +63,10 @@ def fetch_info():
             'geo_bypass_country': 'US',
             'age_limit': None,
             'nocheckcertificate': True,
+            'source_address': '0.0.0.0',
+            'force_ipv4': True,
             'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br',
@@ -86,6 +88,10 @@ def fetch_info():
                 },
                 'tiktok': {
                     'api': 'mobile_app',
+                },
+                'youtube': {
+                    'player_client': ['android', 'web'],
+                    'skip': ['hls', 'dash'],
                 },
             },
             'force_generic_extractor': False,
@@ -386,10 +392,18 @@ def download():
                 'retries': 10,
                 'geo_bypass': True,
                 'nocheckcertificate': True,
+                'source_address': '0.0.0.0',
+                'force_ipv4': True,
                 'http_headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
                     'Accept': '*/*',
                     'Accept-Language': 'en-US,en;q=0.9',
+                },
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web'],
+                        'skip': ['hls', 'dash'],
+                    },
                 },
             }
         else:
@@ -406,10 +420,18 @@ def download():
                 'retries': 10,
                 'geo_bypass': True,
                 'nocheckcertificate': True,
+                'source_address': '0.0.0.0',
+                'force_ipv4': True,
                 'http_headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
                     'Accept': '*/*',
                     'Accept-Language': 'en-US,en;q=0.9',
+                },
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web'],
+                        'skip': ['hls', 'dash'],
+                    },
                 },
             }
 

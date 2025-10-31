@@ -39,6 +39,30 @@ cleanup_thread.start()
 def index():
     return render_template('index.html')
 
+@app.route('/youtube-downloader')
+def youtube_downloader():
+    return render_template('youtube.html')
+
+@app.route('/tiktok-downloader')
+def tiktok_downloader():
+    return render_template('tiktok.html')
+
+@app.route('/instagram-downloader')
+def instagram_downloader():
+    return render_template('instagram.html')
+
+@app.route('/facebook-downloader')
+def facebook_downloader():
+    return render_template('facebook.html')
+
+@app.route('/spotify-downloader')
+def spotify_downloader():
+    return render_template('spotify.html')
+
+@app.route('/audiomack-downloader')
+def audiomack_downloader():
+    return render_template('audiomack.html')
+
 @app.route('/sw.js')
 def service_worker():
     return send_from_directory('.', 'sw.js', mimetype='application/javascript')
@@ -93,16 +117,13 @@ def fetch_info():
                     'api': 'syndication',
                 },
                 'tiktok': {
-                    'api': ['mobile_api', 'web'],
-                    'device_id': None,
+                    'api': 'mobile_app',
                 },
                 'youtube': {
-                    'player_client': ['android', 'web', 'ios'],
+                    'player_client': ['android', 'web'],
                     'skip': ['hls', 'dash'],
                 },
             },
-            'prefer_insecure': False,
-            'legacy_server_connect': False,
             'force_generic_extractor': False,
         }
 
@@ -168,20 +189,26 @@ def fetch_info():
         error_msg = str(e)
         print(f"Download Error: {error_msg}")
         
-        # Detect platform from URL for accurate error messages
+        # Detect platform from URL for better error messages
         platform = 'unknown'
         if url:
             url_lower = url.lower()
-            if 'tiktok.com' in url_lower:
-                platform = 'tiktok'
-            elif 'instagram.com' in url_lower:
+            if 'instagram.com' in url_lower:
                 platform = 'instagram'
+            elif 'tiktok.com' in url_lower:
+                platform = 'tiktok'
             elif 'youtube.com' in url_lower or 'youtu.be' in url_lower:
                 platform = 'youtube'
-            elif 'twitter.com' in url_lower or 'x.com' in url_lower:
-                platform = 'twitter'
             elif 'facebook.com' in url_lower or 'fb.watch' in url_lower:
                 platform = 'facebook'
+            elif 'twitter.com' in url_lower or 'x.com' in url_lower:
+                platform = 'twitter'
+            elif 'spotify.com' in url_lower:
+                platform = 'spotify'
+            elif 'audiomack.com' in url_lower:
+                platform = 'audiomack'
+            elif 'netflix.com' in url_lower:
+                platform = 'netflix'
         
         # Check if it's Instagram and try alternative extraction
         if platform == 'instagram':
@@ -248,13 +275,6 @@ def fetch_info():
             except Exception as alt_error:
                 print(f"Alternative extraction failed: {alt_error}")
         
-        # Handle TikTok-specific errors
-        if platform == 'tiktok':
-            if 'Unable to extract' in error_msg or 'webpage video data' in error_msg:
-                return jsonify({'error': '📱 TikTok video unavailable. This video may be private, deleted, or region-locked. Try a different TikTok video or wait a few minutes.'}), 400
-            else:
-                return jsonify({'error': '📱 TikTok download failed. Make sure the video is public and the link is correct. TikTok may be blocking requests - try again in 2-3 minutes.'}), 400
-        
         # Handle specific errors
         if 'DRM' in error_msg or 'protected' in error_msg.lower():
             return jsonify({'error': 'This content is DRM-protected and cannot be downloaded.'}), 400
@@ -274,15 +294,38 @@ def fetch_info():
         error_message = str(e)
         print(f"ERROR: {error_message}")
         
-        # Provide more helpful, user-friendly error messages
-        if 'twitter' in error_message.lower() or (url and 'x.com' in url.lower()):
+        # Detect platform from URL
+        platform = 'unknown'
+        if url:
+            url_lower = url.lower()
+            if 'instagram.com' in url_lower:
+                platform = 'instagram'
+            elif 'tiktok.com' in url_lower:
+                platform = 'tiktok'
+            elif 'youtube.com' in url_lower or 'youtu.be' in url_lower:
+                platform = 'youtube'
+            elif 'facebook.com' in url_lower or 'fb.watch' in url_lower:
+                platform = 'facebook'
+            elif 'twitter.com' in url_lower or 'x.com' in url_lower:
+                platform = 'twitter'
+            elif 'spotify.com' in url_lower:
+                platform = 'spotify'
+            elif 'audiomack.com' in url_lower:
+                platform = 'audiomack'
+            elif 'netflix.com' in url_lower:
+                platform = 'netflix'
+        
+        # Provide more helpful, user-friendly error messages based on detected platform
+        if platform == 'twitter':
             if 'no video' in error_message.lower():
                 error_message = "😕 This tweet doesn't have a video. We can only download tweets that contain videos."
             else:
                 error_message = "❌ Couldn't access this Twitter/X content. Make sure the tweet is public and contains media."
-        elif 'instagram' in error_message.lower() or (url and 'instagram.com' in url.lower()):
+        elif platform == 'instagram':
             error_message = "📸 Instagram temporarily blocked this request. Please wait 2-3 minutes and try again. Make sure you're using a public post or reel link."
-        elif 'audiomack' in error_message.lower() or (url and 'audiomack.com' in url.lower()):
+        elif platform == 'tiktok':
+            error_message = "📱 TikTok download failed. Make sure the video is public and the link is correct. If it's a private account, we can't access it."
+        elif platform == 'audiomack':
             error_message = "🎵 Couldn't download from Audiomack. Please check the link and make sure the song is publicly available. Try copying the link directly from your browser."
         elif 'spotify' in error_message.lower() or (url and 'spotify.com' in url.lower()):
             error_message = "🎧 Spotify content couldn't be accessed. Make sure the track/playlist is public and the link is correct."

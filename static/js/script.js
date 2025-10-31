@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Service worker disabled to prevent unwanted redirects
-// Google AdSense is used for monetization instead
+// Monetization: Monetag direct link system (two-click approach)
+// First click opens Monetag ad, second click starts download
 
 console.log('Media Downloader by Achek Digital Solutions - Ready!');
